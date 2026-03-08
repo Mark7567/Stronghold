@@ -5,7 +5,6 @@ let window;
 let tabs = [];
 let activeTabTracker = -1;
 
-
 // Layout logic to generate the views
 function layout(view) {
     if(!window || window.isDestroyed() || !view) {
@@ -28,7 +27,7 @@ function createTab() {
         }
     });
 
-    newTab.webContents.loadFile(path.join('html/home.html'));
+    newTab.webContents.loadFile(path.join('html/startup.html'));
     tabs.push(newTab);
     switchTab(tabs.length - 1);
     window.webContents.send('change-location', '');
