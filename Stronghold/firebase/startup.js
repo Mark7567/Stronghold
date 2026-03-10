@@ -1,12 +1,10 @@
-import { db, auth } from './firebaseInitialiser';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { setPersistence, browserLocalPersistence, signInWithPopup, GoogleAuthProvider } from 'firebas/auth';
-
-console.log('startup loaded');
+import { db, auth } from './firebaseInitialiser.js';
+import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js';
+import { setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-auth.js';
 
 async function checkUser(user) {
     const userID = doc(db, 'user', user.uid);
-    const userAccount = await getDoc(user);
+    const userAccount = await getDoc(userID);
 
     if(!userAccount.exists()) {
         await setDoc(
@@ -44,16 +42,20 @@ async function checkUser(user) {
 const authProvider = new GoogleAuthProvider();
 
 async function googleSignIn() {
-    await setPersistence(auth, browserLocalPersistence);
-    const signIn = await signInWithPopup(auth, authProvider);
-    await checkUser(signIn.user);
-
-    window.location.href = '../html/taskbar.html';
+    try {
+        await setPersistence(auth, browserLocalPersistence);
+        await signInWithRedirect(auth, authProvider);
+        await checkUser(signIn.user);
+        await window.stronghold.login();
+    } catch(err) {
+        console.error('google fail', err);
+        alert(err.code || err.message || 'google fail');
+    }
 }
 
-function guestBrowsing() {
+async function guestBrowsing() {
     sessionStorage.setItem('guest_browsing', 'true');
-    window.location.href = '../html/tasbar.html';
+    await window.stronghold.login();
 }
 
 const googleLoginButton = document.getElementById('google_login_button');
@@ -65,3 +67,13 @@ const guestLoginButton = document.getElementById('guest_login_button');
 if(guestLoginButton) {
     guestLoginButton.addEventListener('click', () => guestBrowsing());
 }
+
+async function redirect() {
+    const redirectResult = await getRedirectResult(auth);
+    if(redirectResult && redirectResult.user) {
+        await checkUser(redirectResult.user);
+        await window.stronghold.login();
+    }
+}
+
+redirect();

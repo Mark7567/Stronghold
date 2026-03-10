@@ -27,7 +27,7 @@ function createTab() {
         }
     });
 
-    newTab.webContents.loadFile(path.join('html/startup.html'));
+    newTab.webContents.loadFile(path.join('html/home.html'));
     tabs.push(newTab);
     switchTab(tabs.length - 1);
     window.webContents.send('change-location', '');
@@ -136,12 +136,7 @@ function createWindow() {
         }
     });
 
-    // Loads the taskbar as a "shell" -> Constantly displays
-    window.loadFile('html/taskbar.html');
-
-    window.webContents.once('did-finish-load', () => {
-        createTab();
-    });
+    window.loadURL('http://localhost:1000/html/startup.html');
 
     window.on('resize', () => {
         if(activeTabTracker !== -1) {
@@ -247,6 +242,11 @@ ipcMain.handle('navigate:home', () => {
     const view = activeTab();
     view.webContents.loadFile(path.join('html/home.html'));
 });
+
+ipcMain.handle('navigate:login', async () => {
+    await window.loadFile('html/taskbar.html');
+    createTab();
+})
 
 app.on('window-all-closed', () => {
     if(process.platform !== 'darwin') {
