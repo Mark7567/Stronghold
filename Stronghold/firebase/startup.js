@@ -1,6 +1,8 @@
 import { db, auth } from './firebaseInitialiser.js';
 import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js';
-import { setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-auth.js';
+import { setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-auth.js';
+
+console.log('STARTUP TEST');
 
 async function checkUser(user) {
     const userID = doc(db, 'user', user.uid);
@@ -44,9 +46,16 @@ const authProvider = new GoogleAuthProvider();
 async function googleSignIn() {
     try {
         await setPersistence(auth, browserLocalPersistence);
-        await signInWithRedirect(auth, authProvider);
-        await checkUser(signIn.user);
+
+        const result = await signInWithPopup(auth, authProvider);
+        console.log('sign in success', result.user);
+
+        await checkUser(result.user);
+        console.log('firestore check complete');
+
         await window.stronghold.login();
+        console.log('entered browser');
+
     } catch(err) {
         console.error('google fail', err);
         alert(err.code || err.message || 'google fail');
@@ -67,13 +76,3 @@ const guestLoginButton = document.getElementById('guest_login_button');
 if(guestLoginButton) {
     guestLoginButton.addEventListener('click', () => guestBrowsing());
 }
-
-async function redirect() {
-    const redirectResult = await getRedirectResult(auth);
-    if(redirectResult && redirectResult.user) {
-        await checkUser(redirectResult.user);
-        await window.stronghold.login();
-    }
-}
-
-redirect();
