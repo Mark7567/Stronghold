@@ -32,6 +32,20 @@ function createTab() {
     switchTab(tabs.length - 1);
     window.webContents.send('change-location', '');
 
+    newTab.webContents.on('will-navigate', async (event, url) => {
+        if(url.startsWith('http://')) {
+            event.preventDefault();
+            await newTab.webContents.loadFile(path.join(__dirname, 'html/httpBlocked.html'));
+        }
+    })
+
+    newTab.webContents.on('will-redirect', async (event, url) => {
+        if(url.startsWith('http://')) {
+            event.preventDefault();
+            await newTab.webContents.loadFile(path.join(__dirname, 'html/httpBlocked.html'));
+        }
+    })
+
     newTab.webContents.on('did-start-navigation', (_e, url, isInPlace, isMainFrame) => {
         if(isMainFrame) {
             let displayURL = '';
@@ -45,7 +59,11 @@ function createTab() {
             }
 
             else if(url.includes('settings.html')) {
-                displayURL = 'stronghold/settings'
+                displayURL = 'stronghold/settings';
+            }
+
+            else if(url.includes('httpBlock.html')) {
+                displayURL = 'stronghold/blocked';
             }
 
             else {
@@ -93,7 +111,11 @@ function switchTab(tracker) {
     }
 
     else if(currentURL.includes('settings.html')) {
-        window.webContents.send('change-location', 'stronghold/settings')
+        window.webContents.send('change-location', 'stronghold/settings');
+    }
+
+    else if(currentURL.includes('httpBlock.html')) {
+        window.webContents.send('change-location', 'stronghold/blocked');
     }
     
     else {
@@ -136,6 +158,7 @@ function createWindow() {
         }
     });
 
+    // Starts the project in a localhost server -> Needed for Google OAUTH to work since it cannot take inputs from file://
     window.loadURL('http://localhost:1000/html/startup.html');
 
     window.on('resize', () => {
@@ -151,7 +174,7 @@ app.whenReady().then(createWindow);
 // Checks to see if the input is a URL or not
 function isURL(input) {
     const validEndings = /\.(com|co\.uk|org|net|edu|gov|uk)$/i;
-    const trimmedInput = input.trim();
+    const trimmedInput = input.trim().toLowerCase();
 
     if(trimmedInput.includes(" ")) {
         return false;
@@ -193,18 +216,44 @@ function buildSearchQuery(input) {
 
 }
 
+// Check for HTTP to block it
+function isHTTP(input) {
+    const http = 'http://';
+    const trimmedInput = input.trim().toLowerCase();
+    
+    if(trimmedInput.startsWith(http)) {
+        return true;
+    }
+
+    return false;
+}
 
 // Search Bar + Navigation Buttons
 ipcMain.handle('navigate:goto', async (_e, raw) => {
-    if(isURL(raw)) {    
+    if(!raw.trim()) {
+        return {
+            okay: false,
+            error: 'No Input'
+        };
+    }
+
+    else if(isHTTP(raw)) {
+        await tabs[activeTabTracker].webContents.loadFile(path.join(__dirname, 'html/httpBlock.html'));
+
+        return {
+            okay: true
+        }
+    }
+
+    else if(isURL(raw)) {    
         const url = addHTTPS(raw);
-        
+
         await tabs[activeTabTracker].webContents.loadURL(url);
         return {
             okay: true,
             url
         };
-    } 
+    }
     
     else {
         const search = buildSearchQuery(raw);
