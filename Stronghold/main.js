@@ -1,4 +1,4 @@
-const { app, BrowserWindow, BrowserView, ipcMain } = require('electron');
+const { app, BrowserWindow, BrowserView, ipcMain, session } = require('electron');
 const path = require('node:path');
 
 let window;
@@ -228,6 +228,88 @@ function isHTTP(input) {
     return false;
 }
 
+// Domain Name Check
+function checkDomainName(input) {
+    try {
+        let score = 0;
+        const formatURL = new URL(input);
+        const domainName = formatURL.hostname.toLowerCase();
+        const ipFormat = /^\d{1,3}(\.\d{1,3}){3}$/;
+        const phishingWords = ['login', 'secure', 'verification'];
+        const dotCount = (domainName.match(/\./g)).length;
+
+        // Contains phishing words
+        if(phishingWords.some(word => domainName.includes(word))) {
+            score += 10;
+        }
+
+        // Repeated hyphens
+        if(domainName.includes('--')) {
+            score += 5;
+        }
+
+        // Long domain name
+        if(domainName.length > 50) {
+            score += 10;
+        }
+
+        // Domain is IP address
+        if(ipFormat.test(domainName)) {
+            score += 25;
+        }
+
+        // Homograph attacks -> Browsers represent unicode as 'xn--'
+        if(domainName.includes('xn--')) {
+            score += 25;
+        }
+
+        // Includes '@' symbol
+        if(input.includes('@')) {
+            score += 10;
+        }
+
+        // Multiple dots
+        if(dotCount > 3) {
+            score += 15;
+        }
+
+        return {
+            name: 'Domain Name Check',
+            score
+        }
+    }
+
+    catch {
+        return {
+            name: 'Domain Name Check',
+            score: 100
+        };
+    }
+}
+
+// DNS Check
+
+
+// TLS Certificate Validation
+
+
+// Domain Age Check
+
+
+// Security Header Check
+
+
+// Redirect Analysis
+
+
+// Typoscript Check - Needs Levenshtein Distance Algorith and an array of Known Domains
+
+
+// Overall Risk Score
+
+
+
+
 // Search Bar + Navigation Buttons
 ipcMain.handle('navigate:goto', async (_e, raw) => {
     if(!raw.trim()) {
@@ -306,15 +388,6 @@ app.on('window-all-closed', () => {
 
 
 // Dashboard Stuff
-
-/*  Want a button in the top right corner which when clicked opens up a new tab with the dashboard
-    Dashboard should show stats about user's safety protection
-    Should also show XP points and stuff
-    Needs some kind of cosmetic alteration
-    Should have an option for user to create an account or sign into an existing account
-    Needs a feature to use as a guest (potentially locks out of certain features)
-    Is also where the quizzes / games / general gamification aspects can be found  */
-
 function dashboard() {
 
 }
@@ -331,7 +404,6 @@ ipcMain.handle('navigate:dashboard', async (_e) => {
 
 
 // Settings Stuff
-
 function settings() {
 
 }
@@ -348,11 +420,6 @@ ipcMain.handle('navigate:settings', async (_e) => {
 
 
 // Bookmarks Stuff
-
-/* Needs to add the current page to the bookmarks tab and allow the user to edit the name within the bookmarks
-   Should change from empty to filled in when the page has been bookmarked to indicate such
-   Just a pop-up in the top right corner under the taskbar - need to figure out how */
-
 function bookmarks() { 
 
 }
@@ -360,14 +427,31 @@ function bookmarks() {
 
 
 // Downloads Stuff
+const blockedExtensions = /\.(exe|cmd|ps1|msi)$/i;;
+const recentDownloads = [];
 
-/* Needs to display current downloads from the browser
-   Maybe add a time filter to show 1h, 6h, 24h, 3 month etc.
-   Might have it clear after a set time limit which can be changed in settings to promote security
-   Just a pop-up in the top right corner under the taskbar - need to figure out how
-   Add extra features possibly to allow user to open file from clicking in downloads pop-up
-   Open in a pop-up initially then have the option to open in a big screen (maybe show 5 in pop-up and all in big screen?) */
+function downloadToBeBlocked(file) {
+    if(blockedExtensions.test(file.toLowerCase())) {
+        return true;
+    }
 
-function downloads() {
-    
+    else {
+        return false;
+    }
 }
+
+app.whenReady().then(() => {
+    session.defaultSession.on('will-download', (event, item, webContents) => {
+        const file = item.getFilename();
+        const saveLocation = app.getPath('downloads');
+        const fullSaveLocation = path.join(saveLocation, file);
+        item.setSavePath(fullSaveLocation);
+
+        if(downloadToBeBlocked(filename)) {
+            item.cancel();
+        }
+
+        
+
+    });
+});
