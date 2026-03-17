@@ -1,4 +1,5 @@
 const { app, BrowserWindow, BrowserView, ipcMain, session } = require('electron');
+const { Certificate } = require('node:crypto');
 const path = require('node:path');
 
 let window;
@@ -46,7 +47,7 @@ function createTab() {
         }
     })
 
-    newTab.webContents.on('did-start-navigation', (_e, url, isInPlace, isMainFrame) => {
+    newTab.webContents.on('did-start-navigation', (_e, url, _iip, isMainFrame) => {
         if(isMainFrame) {
             let displayURL = '';
 
@@ -287,11 +288,11 @@ function checkDomainName(input) {
     }
 }
 
-// DNS Check
-
-
 // TLS Certificate Validation
-
+app.on('certificate-error', (event, _wc, _url, _e, _c, validCert) => {
+    event.preventDefault();
+    validCert(false);
+});
 
 // Domain Age Check
 
@@ -305,7 +306,14 @@ function checkDomainName(input) {
 // Typoscript Check - Needs Levenshtein Distance Algorith and an array of Known Domains
 
 
+// DNS Check
+
+
 // Overall Risk Score
+
+
+
+
 
 
 
