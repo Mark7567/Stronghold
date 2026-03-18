@@ -2,6 +2,8 @@ const { app, BrowserWindow, BrowserView, ipcMain, session } = require('electron'
 const { Certificate } = require('node:crypto');
 const path = require('node:path');
 
+import whois from 'whois-json';
+
 let window;
 let tabs = [];
 let activeTabTracker = -1;
@@ -295,7 +297,44 @@ app.on('certificate-error', (event, _wc, _url, _e, _c, validCert) => {
 });
 
 // Domain Age Check
+async function checkDomainAge(input) {
+    try {
+        let score = 0;
+        const formatURL = new URL(input);
+        const domainName = formatURL.hostname.toLowerCase();
+        const whoIsResult = await whois(domainName);
 
+        const createdDate = new Date(whoIsResult.creationDate);
+        const todayDate = new Date();
+        const age = (
+            (todayDate - createdDate) / (1000 * 60 * 60 * 24) 
+        ); 
+
+        if(age <= 30) {
+            score += 50;
+        }
+
+        else if(age <= 90 && age > 30) {
+            score += 25;
+        }
+
+        else if(age <= 365 && age > 90) {
+            score += 10;
+        }
+
+        return{ 
+            name: 'Domain Age Check',
+            score
+        }
+    }
+
+    catch {
+        return {
+            name: 'Domain Age Check',
+            score: 0
+        }
+    }
+}
 
 // Security Header Check
 
