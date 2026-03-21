@@ -15,6 +15,7 @@
     "electron": "^39.1.2"
   },
   "dependencies": {
-    "firebase": "^12.9.0"
+    "firebase": "^12.9.0",
+    "whois-json": "^2.0.4"
   }
 }

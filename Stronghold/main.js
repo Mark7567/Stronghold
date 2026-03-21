@@ -1,8 +1,6 @@
 const { app, BrowserWindow, BrowserView, ipcMain, session } = require('electron');
-const { Certificate } = require('node:crypto');
 const path = require('node:path');
-
-import whois from 'whois-json';
+const whois = require('whois-json');
 
 let window;
 let tabs = [];
@@ -219,62 +217,80 @@ function buildSearchQuery(input) {
 
 }
 
-// Check for HTTP to block it
+
+// HTTP Check - RISK SCORE
 function isHTTP(input) {
-    const http = 'http://';
-    const trimmedInput = input.trim().toLowerCase();
-    
-    if(trimmedInput.startsWith(http)) {
-        return true;
+    try {
+        let score = 0;
+        const formatURL = new URL(input.trim());
+        
+        if(formatURL.protocol === 'http:') {
+            score += 10;
+        }
+
+        console.log(score); // Testing - Can Remove
+
+        return {
+            name: 'HTTP Check',
+            score
+        }
     }
 
-    return false;
+    catch {
+        return {
+            name: 'HTTP Check',
+            score: 100
+        } 
+    }
 }
 
-// Domain Name Check
+
+// Domain Name Check - RISK SCORE
 function checkDomainName(input) {
     try {
         let score = 0;
         const formatURL = new URL(input);
         const domainName = formatURL.hostname.toLowerCase();
         const ipFormat = /^\d{1,3}(\.\d{1,3}){3}$/;
-        const phishingWords = ['login', 'secure', 'verification'];
+        const phishingWords = ['login', 'secure', 'verification']; // Kinda basic rn - Need to add more
         const dotCount = (domainName.match(/\./g)).length;
 
-        // Contains phishing words
+        // Contains phishing words?
         if(phishingWords.some(word => domainName.includes(word))) {
             score += 10;
         }
 
-        // Repeated hyphens
+        // Repeated hyphens?
         if(domainName.includes('--')) {
             score += 5;
         }
 
-        // Long domain name
+        // Long domain name?
         if(domainName.length > 50) {
             score += 10;
         }
 
-        // Domain is IP address
+        // Domain is IP address?
         if(ipFormat.test(domainName)) {
             score += 25;
         }
 
-        // Homograph attacks -> Browsers represent unicode as 'xn--'
+        // Homograph attack? -> Browsers represent unicode as 'xn--'
         if(domainName.includes('xn--')) {
             score += 25;
         }
 
-        // Includes '@' symbol
+        // Includes '@' symbol?
         if(input.includes('@')) {
             score += 10;
         }
 
-        // Multiple dots
+        // Multiple dots?
         if(dotCount > 3) {
             score += 15;
         }
+
+        console.log(score); // Testing - Can Remove
 
         return {
             name: 'Domain Name Check',
@@ -290,13 +306,15 @@ function checkDomainName(input) {
     }
 }
 
-// TLS Certificate Validation
+
+// TLS Certificate Validation - RISK SCORE
 app.on('certificate-error', (event, _wc, _url, _e, _c, validCert) => {
     event.preventDefault();
     validCert(false);
 });
 
-// Domain Age Check
+
+// Domain Age Check - RISK SCORE
 async function checkDomainAge(input) {
     try {
         let score = 0;
@@ -322,6 +340,13 @@ async function checkDomainAge(input) {
             score += 10;
         }
 
+        // Testing - Can Remove
+        else if(age > 365) {
+            score += 100;
+        }
+
+        console.log(score); // Testing - Can Remove
+
         return{ 
             name: 'Domain Age Check',
             score
@@ -331,30 +356,36 @@ async function checkDomainAge(input) {
     catch {
         return {
             name: 'Domain Age Check',
-            score: 0
+            score: 100
         }
     }
 }
 
-// Security Header Check
+
+// Security Header Check - RISK SCORE
 
 
-// Redirect Analysis
+// Redirect Analysis - RISK SCORE
 
 
-// Typoscript Check - Needs Levenshtein Distance Algorith and an array of Known Domains
+// Typoscript Check - Needs Levenshtein Distance Algorith and an array of Known Domains - RISK SCORE
 
 
-// DNS Check
+// DNS Check - RISK SCORE
 
 
 // Overall Risk Score
+function riskScore(input) {
+    let score = 0;
+    
+    score += isHTTP(input);
+    score += checkDomainName(input);
+    score += checkDomainAge(input);
 
+    console.log(score); // Testing - Can Remove
 
-
-
-
-
+    return score;
+}
 
 
 // Search Bar + Navigation Buttons
@@ -366,16 +397,9 @@ ipcMain.handle('navigate:goto', async (_e, raw) => {
         };
     }
 
-    else if(isHTTP(raw)) {
-        await tabs[activeTabTracker].webContents.loadFile(path.join(__dirname, 'html/httpBlock.html'));
-
-        return {
-            okay: true
-        }
-    }
-
     else if(isURL(raw)) {    
         const url = addHTTPS(raw);
+        riskScore(raw);
 
         await tabs[activeTabTracker].webContents.loadURL(url);
         return {
