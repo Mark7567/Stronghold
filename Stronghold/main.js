@@ -219,7 +219,7 @@ function buildSearchQuery(input) {
 
 
 // HTTP Check - RISK SCORE
-function isHTTP(input) {
+function checkHTTP(input) {
     try {
         let score = 0;
         const formatURL = new URL(input.trim());
@@ -301,7 +301,7 @@ function checkDomainName(input) {
     catch {
         return {
             name: 'Domain Name Check',
-            score: 100
+            score: 200
         };
     }
 }
@@ -356,14 +356,133 @@ async function checkDomainAge(input) {
     catch {
         return {
             name: 'Domain Age Check',
-            score: 100
+            score: 300
         }
     }
 }
 
 
 // Security Header Check - RISK SCORE
+async function checkSecurityHeader(input) {
+    let score = 0;
 
+    try {
+        const fetchedResponse = await fetch(input, {method: 'GET'});
+        const responseHeaders = fetchedResponse.headers;
+
+        if(responseHeaders.has('x-frame-options')) {
+            score = 1;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('x-xss-protection')) {
+            score = 2;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('x-content-type-options')) {
+            score = 3;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('referrer-policy')) {
+            score = 4;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('content-type')) {
+            score = 5;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('set-cookie')) {
+            score = 6;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('strict-transport-security')) {
+            score = 7;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('expect-ct')) {
+            score = 8;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('content-security-policy')) {
+            score = 9;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('access-control-allow-origin')) {
+            score = 10;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('cross-origin-opener-policy')) {
+            score = 11;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('cross-origin-embedder-policy')) {
+            score = 12;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('cross-origin-resource-policy')) {
+            score = 13;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('permissions-policy') || responseHeaders.has('feature-policy')) {
+            score = 14;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('server')) {
+            score = 15;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('x-powered-by')) {
+            score = 16;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('x-aspnet-version')) {
+            score = 17;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('x-aspnetmvc-version')) {
+            score = 18;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('x-robots-tag')) {
+            score = 19;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('x-dns-prefetch-control')) {
+            score = 20;
+            console.log(score); // Testing - Can Remove
+        }
+
+        if(responseHeaders.has('public-key-pins')) {
+            score = 21;
+            console.log(score); // Testing - Can Remove
+        }
+    }
+
+    catch {
+        return {
+            name: 'Security Header Check',
+            score: 400
+        }
+    }
+}
 
 // Redirect Analysis - RISK SCORE
 
@@ -378,9 +497,10 @@ async function checkDomainAge(input) {
 function riskScore(input) {
     let score = 0;
     
-    score += isHTTP(input);
-    score += checkDomainName(input);
-    score += checkDomainAge(input);
+    //score += checkHTTP(input);
+    //score += checkDomainName(input);
+    //score += checkDomainAge(input);
+    checkSecurityHeader(input);
 
     console.log(score); // Testing - Can Remove
 
