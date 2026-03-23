@@ -24,10 +24,6 @@ body {
     height: 30px;
 }
 
-#dashboard_button {
-    margin-left: auto;
-}
-
 #bookmarks_button img {
     width: 30px;
     height: 30px;
@@ -68,23 +64,17 @@ body {
 #row_1 {
     display: flex;
     align-items: center;
+    gap: 8px;
 }
 
 #tabs_holder {
     display: flex;
     align-items: center;
-    gap: 8px;
-
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
     overflow-x: auto;
     overflow-y: hidden;
-    white-space: nowrap;
-    max-width: 100%;
-}
-
-#tabs_holder div {
-    width: 150px;
-    height: 30px;
-    background: green;
 }
 
 #new_tab_button {
@@ -96,4 +86,51 @@ body {
     align-items: center;
     padding: 6px 10px;
     gap: 8px;
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    flex: 1 1 120px;
+    min-width: 60px;
+    max-width: 180px;
+    height: 40px;
+    padding: 0 6px;
+    background: green;
+    border: 1px solid black;
+    box-sizing: border-box;
+    overflow: hidden;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.tab.active_tab {
+    background: red !important;
+}
+
+.tab_name {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.close_tab_button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 18px;
+    width: 14px;
+    height: 14px;
+    min-width: 14px;
+    min-height:14px;
+    margin-left: 4px;
+    padding: 0;
+    border: 1px solid black;
+    background: white;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
 }

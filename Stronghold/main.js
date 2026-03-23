@@ -28,22 +28,27 @@ function createTab() {
         }
     });
 
+    const tabStorage = {
+        view: newTab,
+        title: 'Home Page'
+    }
+
     newTab.webContents.loadFile(path.join('html/home.html'));
-    tabs.push(newTab);
+    tabs.push(tabStorage);
     switchTab(tabs.length - 1);
     window.webContents.send('change-location', '');
 
     newTab.webContents.on('will-navigate', async (event, url) => {
         if(url.startsWith('http://')) {
             event.preventDefault();
-            await newTab.webContents.loadFile(path.join(__dirname, 'html/httpBlocked.html'));
+            await newTab.webContents.loadFile(path.join(__dirname, 'html/blocked.html'));
         }
     })
 
     newTab.webContents.on('will-redirect', async (event, url) => {
         if(url.startsWith('http://')) {
             event.preventDefault();
-            await newTab.webContents.loadFile(path.join(__dirname, 'html/httpBlocked.html'));
+            await newTab.webContents.loadFile(path.join(__dirname, 'html/blocked.html'));
         }
     })
 
@@ -63,7 +68,7 @@ function createTab() {
                 displayURL = 'stronghold/settings';
             }
 
-            else if(url.includes('httpBlock.html')) {
+            else if(url.includes('blocked.html')) {
                 displayURL = 'stronghold/blocked';
             }
 
@@ -79,12 +84,19 @@ function createTab() {
         if(window && !window.isDestroyed()) {
             window.setTitle(`Stronghold - ${title}`);
         }
+
+        updateTabName(newTab);
     });
 
-    window.webContents.send('tabs:update', {
-        tabNumber: tabs.length,
-        activeTab: activeTabTracker
+    newTab.webContents.on('did-finish-load', () => {
+        updateTabName(newTab);
     });
+
+    newTab.webContents.on('did-navigate', () => {
+        updateTabName(newTab);
+    });
+
+    updateTabInfo();
 }
 
 function switchTab(tracker) {
@@ -93,12 +105,12 @@ function switchTab(tracker) {
     }
 
     if(activeTabTracker !== -1) {
-        window.removeBrowserView(tabs[activeTabTracker]);
+        window.removeBrowserView(tabs[activeTabTracker].view);
     }
 
     activeTabTracker = tracker;
 
-    const view = tabs[activeTabTracker];
+    const view = tabs[activeTabTracker].view;
     window.setBrowserView(view);
     layout(view);
 
@@ -115,7 +127,7 @@ function switchTab(tracker) {
         window.webContents.send('change-location', 'stronghold/settings');
     }
 
-    else if(currentURL.includes('httpBlock.html')) {
+    else if(currentURL.includes('blocked.html')) {
         window.webContents.send('change-location', 'stronghold/blocked');
     }
     
@@ -123,14 +135,42 @@ function switchTab(tracker) {
         window.webContents.send('change-location', currentURL);
     }
 
-    window.webContents.send('tabs:update', {
-        tabNumber: tabs.length,
-        activeTab: activeTabTracker
-    });
+    updateTabInfo();
 }
 
-function closeTab() {
+function closeTab(tabIndex) {
+    if(tabIndex < 0 || tabIndex >= tabs.length) {
+        return;
+    }
 
+    const closingActiveTab = tabIndex === activeTabTracker;
+    
+    window.removeBrowserView(tabs[tabIndex].view);
+    tabs[tabIndex].view.webContents.destroy();
+    tabs.splice(tabIndex, 1);
+
+    if(tabs.length === 0) {
+        activeTabTracker = -1;
+        createTab();
+        return;
+    }
+
+    if(closingActiveTab) {
+        if(activeTabTracker >= tabs.length) {
+            activeTabTracker = tabs.length - 1;
+        }
+
+        else {
+            activeTabTracker = tabIndex;
+        }
+    }
+
+    else if(tabIndex < activeTabTracker) {
+        activeTabTracker--;
+    }   
+
+    switchTab(activeTabTracker);
+    updateTabInfo();
 }
 
 function activeTab() {
@@ -138,11 +178,54 @@ function activeTab() {
         createTab();
     }
 
-    return tabs[activeTabTracker];
+    return tabs[activeTabTracker].view;
+}
+
+function updateTabInfo() {
+    const tabInfo = tabs.map((tab, index) => ({
+        index: index,
+        title: tab.title,
+        active: index === activeTabTracker
+    }));
+
+    window.webContents.send('tabs:update', {
+        tabs: tabInfo,
+        activeTab: activeTabTracker
+    });
+}
+
+function updateTabName(view) {
+    const tabIndex = tabs.findIndex(tab => tab.view === view);
+    
+    if(tabIndex === -1) {
+        return;
+    }
+    
+    let title = view.webContents.getTitle();
+
+    if(!title || title.includes('Stronghold')) {
+        const url = view.webContents.getURL();
+
+        if(url.includes('home')) {
+            title = 'Home';
+        }
+
+        else if(url.includes('dashboard')) {
+            title = 'Dashboard';
+        }
+
+        else if(url.includes('settings')) {
+            title = 'Settings';
+        }
+    }
+
+    tabs[tabIndex].title = title;
+    updateTabInfo();
 }
 
 ipcMain.handle('tabs:new-tab', () => createTab());
 ipcMain.handle('tabs:switch-tab', (_e, tabID) => switchTab(tabID));
+ipcMain.handle('tabs:close-tab', (_e, tabID) => closeTab(tabID));
 
 
 // Creates the window which the browser will be displayed in 
@@ -164,7 +247,7 @@ function createWindow() {
 
     window.on('resize', () => {
         if(activeTabTracker !== -1) {
-            layout(tabs[activeTabTracker]);
+            layout(tabs[activeTabTracker].view);
         }
     });
 }
@@ -364,9 +447,9 @@ async function checkDomainAge(input) {
 
 // Security Header Check - RISK SCORE
 async function checkSecurityHeader(input) {
-    let score = 0;
-
     try {
+        let score = 0;
+
         const fetchedResponse = await fetch(input, {method: 'GET'});
         const responseHeaders = fetchedResponse.headers;
 
@@ -474,6 +557,11 @@ async function checkSecurityHeader(input) {
             score = 21;
             console.log(score); // Testing - Can Remove
         }
+
+        return {
+            name: 'Security Header Check',
+            score
+        }
     }
 
     catch {
@@ -497,10 +585,10 @@ async function checkSecurityHeader(input) {
 function riskScore(input) {
     let score = 0;
     
-    //score += checkHTTP(input);
-    //score += checkDomainName(input);
-    //score += checkDomainAge(input);
-    checkSecurityHeader(input);
+    score += checkHTTP(input);
+    score += checkDomainName(input);
+    score += checkDomainAge(input);
+    score += checkSecurityHeader(input);
 
     console.log(score); // Testing - Can Remove
 
@@ -521,7 +609,7 @@ ipcMain.handle('navigate:goto', async (_e, raw) => {
         const url = addHTTPS(raw);
         riskScore(raw);
 
-        await tabs[activeTabTracker].webContents.loadURL(url);
+        await tabs[activeTabTracker].view.webContents.loadURL(url);
         return {
             okay: true,
             url
@@ -531,7 +619,7 @@ ipcMain.handle('navigate:goto', async (_e, raw) => {
     else {
         const search = buildSearchQuery(raw);
 
-        await tabs[activeTabTracker].webContents.loadURL(search);
+        await tabs[activeTabTracker].view.webContents.loadURL(search);
         return {
             okay: true,
             search
@@ -585,7 +673,7 @@ function dashboard() {
 
 ipcMain.handle('navigate:dashboard', async (_e) => {
     const html = 'html/dashboard.html' 
-    await tabs[activeTabTracker].webContents.loadFile(html);
+    await tabs[activeTabTracker].view.webContents.loadFile(html);
     return {
         okay: true,
         html
@@ -601,7 +689,7 @@ function settings() {
 
 ipcMain.handle('navigate:settings', async (_e) => {
     const html = 'html/settings.html'
-    await tabs[activeTabTracker].webContents.loadFile(html);
+    await tabs[activeTabTracker].view.webContents.loadFile(html);
     return {
         okay: true,
         html
@@ -641,8 +729,6 @@ app.whenReady().then(() => {
         if(downloadToBeBlocked(filename)) {
             item.cancel();
         }
-
         
-
     });
 });

@@ -52,32 +52,47 @@ if(searchAlgorithm) {
     });
 }
 
-window.stronghold.onLocationChange((url) => {
-    urlInput.value = url || '';
-});
-
-
-function showTabs(tabNumber) {
+function showTabs(tabs, _aT) {
     const tabHolder = document.getElementById('tabs_holder');
     tabHolder.innerHTML = '';
 
-    for(let i = 0; i < tabNumber; i++) {
+    tabs.forEach((tabData) => {
         const tab = document.createElement('div');
+        tab.classList.add('tab');
+        tab.dataset.tabNumber = tabData.index;
+
+        if(tabData.active) {
+            tab.classList.add('active_tab')
+        }
         
-        tab.dataset.tabNumber = i;
-        tab.addEventListener('click', (e) => {
-            const tabID = Number(e.currentTarget.dataset.tabNumber);
-            window.stronghold.switchTab(tabID);
-        });
+        const name = document.createElement('span');
+        name.classList.add('tab_name');
+        name.textContent = tabData.title;
+
+        const closeTabButton = document.createElement('button');
+        closeTabButton.classList.add('close_tab_button');
+        closeTabButton.textContent = 'X';
+
+        if(tab) {
+            tab.addEventListener('click', () => {window.stronghold.switchTab(tabData.index);});
+        }
+
+        if(closeTabButton) {
+            closeTabButton.addEventListener('click', (e) => {
+                e.stopPropagation(); 
+                window.stronghold.closeTab(tabData.index);
+            });
+        }
         
-        
+        tab.appendChild(name);
+        tab.appendChild(closeTabButton);
         tabHolder.appendChild(tab);
-    }
+    });
 }
 
 window.addEventListener('updateTabs', (e) => {
-    const {tabNumber, activeTab} = e.detail;
-    showTabs(tabNumber, activeTab);
+    const {tabs, activeTab} = e.detail;
+    showTabs(tabs, activeTab);
 })
 
 const urlInput = document.getElementById('url');
