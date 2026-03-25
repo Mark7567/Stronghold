@@ -252,8 +252,10 @@ function createWindow() {
     });
 }
 
-app.whenReady().then(createWindow);
-
+app.whenReady().then( () => {
+    downloadHandler();
+    createWindow();
+});
 
 // Checks to see if the input is a URL or not
 function isURL(input) {
@@ -573,24 +575,41 @@ async function checkSecurityHeader(input) {
 }
 
 // Redirect Analysis - RISK SCORE
+function redirectAnalysis(input) {
 
+}
 
 // Typoscript Check - Needs Levenshtein Distance Algorith and an array of Known Domains - RISK SCORE
+function typoscriptCheck(input) {
 
+}
 
 // DNS Check - RISK SCORE
+function dnsCheck(input) {
 
+}
 
 // Overall Risk Score
-function riskScore(input) {
+async function riskScore(input) {
     let score = 0;
     
     score += checkHTTP(input);
     score += checkDomainName(input);
     score += checkDomainAge(input);
     score += checkSecurityHeader(input);
+    score += redirectAnalysis(input);
+    score += typoscriptCheck(input);
+    score += dnsCheck(input);
 
     console.log(score); // Testing - Can Remove
+
+    if(score > 100) {
+        window.loadFile('html/blocked.html');
+    }
+
+    else if(score > 50) {
+        window.loadFile('html/warned.html');
+    }
 
     return score;
 }
@@ -665,7 +684,6 @@ app.on('window-all-closed', () => {
 })
 
 
-
 // Dashboard Stuff
 function dashboard() {
 
@@ -705,9 +723,9 @@ function bookmarks() {
 
 
 
-// Downloads Stuff
-const blockedExtensions = /\.(exe|cmd|ps1|msi)$/i;;
-const recentDownloads = [];
+// Downloads Stuff --> Block cmd, ps1, bat, js. Warn exe, msi. Allow everything else
+const blockedExtensions = /\.(cmd|ps1|bat|js)$/i;;
+let recentDownloads = [];
 
 function downloadToBeBlocked(file) {
     if(blockedExtensions.test(file.toLowerCase())) {
@@ -719,16 +737,30 @@ function downloadToBeBlocked(file) {
     }
 }
 
-app.whenReady().then(() => {
-    session.defaultSession.on('will-download', (event, item, webContents) => {
+function downloadHandler() {
+    session.defaultSession.on('will-download', (_e, item, _wC) => {
         const file = item.getFilename();
+
+        if(downloadToBeBlocked(file)) {
+            item.cancel();
+            return;
+        }
+
         const saveLocation = app.getPath('downloads');
         const fullSaveLocation = path.join(saveLocation, file);
         item.setSavePath(fullSaveLocation);
 
-        if(downloadToBeBlocked(filename)) {
-            item.cancel();
-        }
-        
+        const downloadsRecord = {
+            file,
+            path: fullSaveLocation,
+            url: item.getURL(),
+            state: 'In Progress',
+            startedAt: Date.now()
+        };
+
+        recentDownloads.unshift(downloadsRecord);
+
+        item.on('updated', (_e, state) => {downloadsRecord.state = state;})
+        item.once('done', (_e, state) => {downloadsRecord.state = state;});
     });
-});
+}
