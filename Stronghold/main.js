@@ -2,7 +2,7 @@ const { app, BrowserWindow, BrowserView, ipcMain, session } = require('electron'
 const path = require('node:path');
 const whois = require('whois-json');
 const damerauLevenshtein = require('talisman/metrics/damerau-levenshtein');
-const { knownDomains } = require('./lists');
+const { knownDomains, blockedExtensions, phishingWords, validEndings } = require('./lists');
 const { parse } = require('tldts');
 
 let window;
@@ -262,7 +262,6 @@ app.whenReady().then( () => {
 
 // Checks to see if the input is a URL or not
 function isURL(input) {
-    const validEndings = /\.(com|co\.uk|org|net|edu|gov|uk)$/i;
     const trimmedInput = input.trim().toLowerCase();
 
     if(trimmedInput.includes(" ")) {
@@ -322,7 +321,7 @@ function checkHTTP(input) {
     }
 
     catch {
-        return score = 100;
+        return score;
     }
 }
 
@@ -334,7 +333,6 @@ function checkDomainName(input) {
         const formatURL = new URL(input);
         const domainName = formatURL.hostname.toLowerCase();
         const ipFormat = /^\d{1,3}(\.\d{1,3}){3}$/;
-        const phishingWords = ['login', 'secure', 'verification']; // Kinda basic rn - Need to add more
         const dotCount = (domainName.match(/\./g)).length;
 
         // Contains phishing words?
@@ -378,18 +376,16 @@ function checkDomainName(input) {
     }
 
     catch {
-        return score = 200;
+        return score;
     }
 }
 
 
 // TLS Certificate Validation - RISK SCORE
-/*
 app.on('certificate-error', (event, _wc, _url, _e, _c, validCert) => {
     event.preventDefault();
     validCert(false);
 });
-*/
 
 
 // Domain Age Check - RISK SCORE
@@ -428,7 +424,7 @@ async function checkDomainAge(input) {
     }
 
     catch {
-        return score = 300;
+        return score;
     }
 }
 
@@ -550,7 +546,7 @@ async function checkSecurityHeader(input) {
     }
 
     catch {
-        return score = 400;
+        return score;
     }
 }
 
@@ -560,7 +556,7 @@ function redirectAnalysis(input) {
 
 }
 
-// Typosquatting Check - Needs Levenshtein Distance Algorith and an array of Known Domains - RISK SCORE
+// Typosquatting Check - RISK SCORE
 function typosquattingCheck(input) {
     try {
         let score = 0;
@@ -762,7 +758,6 @@ function bookmarks() {
 
 
 // Downloads Stuff --> Block cmd, ps1, bat, js. Warn exe, msi. Allow everything else
-const blockedExtensions = /\.(cmd|ps1|bat|js)$/i;;
 let recentDownloads = [];
 
 function downloadToBeBlocked(file) {

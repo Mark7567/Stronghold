@@ -26,8 +26,33 @@ const knownDomains = [
         'revolut',
         'monzo',
         'ebay'
-    ];
+];
+
+const blockedExtensions = [
+    '.cmd',
+    '.ps1',
+    '.bat',
+    '.js'
+];
+
+const phishingWords = [
+    'login',
+    'secure',
+    'verification'
+];
+
+const validEndings = [
+    '.com',
+    '.co.uk',
+    '.org',
+    '.net',
+    '.edu',
+    '.gov',
+    '.uk'
+];
 
 module.exports = {
-    knownDomains
+    knownDomains,
+    blockedExtensions,
+    phishingWords
 };
