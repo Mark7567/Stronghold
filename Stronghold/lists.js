@@ -54,5 +54,6 @@ const validEndings = [
 module.exports = {
     knownDomains,
     blockedExtensions,
-    phishingWords
+    phishingWords,
+    validEndings
 };

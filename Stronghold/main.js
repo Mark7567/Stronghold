@@ -263,16 +263,19 @@ app.whenReady().then( () => {
 // Checks to see if the input is a URL or not
 function isURL(input) {
     const trimmedInput = input.trim().toLowerCase();
+    const removeProtocol = trimmedInput.replace(/^https?:\/\//, "");
+    const baseHost = removeProtocol.split(/[/?#]/)[0];
+
 
     if(trimmedInput.includes(" ")) {
         return false;
     }
 
-    if(!validEndings.test(trimmedInput)) {
+    if(!baseHost.includes('.')) {
         return false;
     }
 
-    if(!trimmedInput.includes('.')) {
+    if(!validEndings.some(ending => baseHost.endsWith(ending))) {
         return false;
     }
 
