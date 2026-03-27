@@ -764,7 +764,9 @@ function bookmarks() {
 let recentDownloads = [];
 
 function downloadToBeBlocked(file) {
-    if(blockedExtensions.test(file.toLowerCase())) {
+    const fileName = file.trim().toLowerCase();
+    
+    if(blockedExtensions.some(extension => fileName.endsWith(extension))) {
         return true;
     }
 
