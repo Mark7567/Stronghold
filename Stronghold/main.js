@@ -1,6 +1,9 @@
 const { app, BrowserWindow, BrowserView, ipcMain, session } = require('electron');
 const path = require('node:path');
 const whois = require('whois-json');
+const damerauLevenshtein = require('talisman/metrics/damerau-levenshtein');
+const { knownDomains } = require('./lists');
+const { parse } = require('tldts');
 
 let window;
 let tabs = [];
@@ -315,17 +318,11 @@ function checkHTTP(input) {
 
         console.log(score); // Testing - Can Remove
 
-        return {
-            name: 'HTTP Check',
-            score
-        }
+        return score;
     }
 
     catch {
-        return {
-            name: 'HTTP Check',
-            score: 100
-        } 
+        return score = 100;
     }
 }
 
@@ -377,26 +374,22 @@ function checkDomainName(input) {
 
         console.log(score); // Testing - Can Remove
 
-        return {
-            name: 'Domain Name Check',
-            score
-        }
+        return score;
     }
 
     catch {
-        return {
-            name: 'Domain Name Check',
-            score: 200
-        };
+        return score = 200;
     }
 }
 
 
 // TLS Certificate Validation - RISK SCORE
+/*
 app.on('certificate-error', (event, _wc, _url, _e, _c, validCert) => {
     event.preventDefault();
     validCert(false);
 });
+*/
 
 
 // Domain Age Check - RISK SCORE
@@ -428,21 +421,14 @@ async function checkDomainAge(input) {
         // Testing - Can Remove
         else if(age > 365) {
             score += 100;
+            console.log('OLD');
         }
 
-        console.log(score); // Testing - Can Remove
-
-        return{ 
-            name: 'Domain Age Check',
-            score
-        }
+        return score;
     }
 
     catch {
-        return {
-            name: 'Domain Age Check',
-            score: 300
-        }
+        return score = 300;
     }
 }
 
@@ -456,136 +442,188 @@ async function checkSecurityHeader(input) {
         const responseHeaders = fetchedResponse.headers;
 
         if(responseHeaders.has('x-frame-options')) {
-            score = 1;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('x-frame-options'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('x-xss-protection')) {
-            score = 2;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('x-xss-protection'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('x-content-type-options')) {
-            score = 3;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('x-content-type-options'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('referrer-policy')) {
-            score = 4;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('referrer-policy'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('content-type')) {
-            score = 5;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('content-type'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('set-cookie')) {
-            score = 6;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('set-cookie'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('strict-transport-security')) {
-            score = 7;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('strict-transport-security'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('expect-ct')) {
-            score = 8;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('expect-ct'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('content-security-policy')) {
-            score = 9;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('content-security-policy'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('access-control-allow-origin')) {
-            score = 10;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('access-control-allow-origin'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('cross-origin-opener-policy')) {
-            score = 11;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('cross-origin-opener-policy'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('cross-origin-embedder-policy')) {
-            score = 12;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('cross-origin-embedder-policy'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('cross-origin-resource-policy')) {
-            score = 13;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('cross-origin-resource-policy'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('permissions-policy') || responseHeaders.has('feature-policy')) {
-            score = 14;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('permissions-policy'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('server')) {
-            score = 15;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('server'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('x-powered-by')) {
-            score = 16;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('x-powered-by'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('x-aspnet-version')) {
-            score = 17;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('x-aspnet-version'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('x-aspnetmvc-version')) {
-            score = 18;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('x-aspnetmvc-version'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('x-robots-tag')) {
-            score = 19;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('x-robots-tag'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('x-dns-prefetch-control')) {
-            score = 20;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('x-dns-prefetch-control'); // Testing - Can Remove
         }
 
         if(responseHeaders.has('public-key-pins')) {
-            score = 21;
-            console.log(score); // Testing - Can Remove
+            score += 10;
+            console.log('public-key-pins'); // Testing - Can Remove
         }
 
-        return {
-            name: 'Security Header Check',
-            score
-        }
+        return score;
     }
 
     catch {
-        return {
-            name: 'Security Header Check',
-            score: 400
-        }
+        return score = 400;
     }
 }
 
 // Redirect Analysis - RISK SCORE
 function redirectAnalysis(input) {
+    let score = 0;
 
 }
 
-// Typoscript Check - Needs Levenshtein Distance Algorith and an array of Known Domains - RISK SCORE
-function typoscriptCheck(input) {
+// Typosquatting Check - Needs Levenshtein Distance Algorith and an array of Known Domains - RISK SCORE
+function typosquattingCheck(input) {
+    try {
+        let score = 0;
+        const formatURL = new URL(input);
+        const domainName = formatURL.hostname.toLowerCase().replace(/^www\./, '');
+        const domainSplit = domainName.split('.');
+        const host = parse(domainName).domainWithoutSuffix;
 
+        if(typeof host === 'string' && host.length > 0) {
+            if(knownDomains.includes(host)) {
+                return score;
+            }
+
+            for(const trustedDomain of knownDomains) {
+                const distance = damerauLevenshtein(host, trustedDomain);
+
+                if(distance === 1) {
+                    score = Math.max(score, 30);
+                    console.log('Distance Check: ', score);
+                }
+
+                else if(distance === 2) {
+                    score = Math.max(score, 15);
+                    console.log('Distance Check: ', score);
+                }
+            }
+        }
+
+        for(const subDomain of domainSplit) {
+            if(subDomain === host) {
+                continue;
+            }
+
+            if(typeof subDomain !== 'string') {
+                continue;
+            }
+
+            for(const trustedDomain of knownDomains) {
+                const distance = damerauLevenshtein(subDomain, trustedDomain);
+
+                if(distance === 1) {
+                    score = Math.max(score, 30);
+                    console.log('Distance Check: ', score);
+                }
+
+                else if(distance === 2) {
+                    score = Math.max(score, 15);
+                    console.log('Distance Check: ', score);
+                }
+            }
+        }
+
+        return score;
+    }
+
+    catch {
+        return score;
+    }
 }
 
 // DNS Check - RISK SCORE
 function dnsCheck(input) {
+    let score = 0;
 
 }
 
@@ -595,10 +633,10 @@ async function riskScore(input) {
     
     score += checkHTTP(input);
     score += checkDomainName(input);
-    score += checkDomainAge(input);
-    score += checkSecurityHeader(input);
+    score += await checkDomainAge(input);
+    score += await checkSecurityHeader(input);
     score += redirectAnalysis(input);
-    score += typoscriptCheck(input);
+    score += typosquattingCheck(input);
     score += dnsCheck(input);
 
     console.log(score); // Testing - Can Remove

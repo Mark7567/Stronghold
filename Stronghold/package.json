@@ -16,6 +16,8 @@
   },
   "dependencies": {
     "firebase": "^12.9.0",
+    "talisman": "^1.1.4",
+    "tldts": "^7.0.27",
     "whois-json": "^2.0.4"
   }
 }
