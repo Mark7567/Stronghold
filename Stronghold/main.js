@@ -41,18 +41,26 @@ function createTab() {
     switchTab(tabs.length - 1);
     window.webContents.send('change-location', '');
 
+    newTab.overrideRiskScore = false;
+
     newTab.webContents.on('will-navigate', async (event, url) => {
-        if(url.startsWith('http://')) {
-            event.preventDefault();
-            await newTab.webContents.loadFile(path.join(__dirname, 'html/blocked.html'));
+        if(newTab.overrideRiskScore) {
+            newTab.overrideRiskScore = false;
+            return;
         }
-    })
+
+        event.preventDefault();
+        await navigationOnceChecked(newTab, url);
+    });
 
     newTab.webContents.on('will-redirect', async (event, url) => {
-        if(url.startsWith('http://')) {
-            event.preventDefault();
-            await newTab.webContents.loadFile(path.join(__dirname, 'html/blocked.html'));
+        if(newTab.overrideRiskScore) {
+            newTab.overrideRiskScore = false;
+            return;
         }
+
+        event.preventDefault();
+        await navigationOnceChecked(newTab, url);
     })
 
     newTab.webContents.on('did-start-navigation', (_e, url, _iip, isMainFrame) => {
@@ -98,6 +106,12 @@ function createTab() {
     newTab.webContents.on('did-navigate', () => {
         updateTabName(newTab);
     });
+
+    newTab.webContents.on('did-fail-load', (_e, errorCode, _eD, _vURL, _iMF) => {
+        if(errorCode === -3 || errorCode === -2) {
+            return;
+        }
+    })
 
     updateTabInfo();
 }
@@ -286,13 +300,13 @@ function isURL(input) {
 // Adds https:// to the beginning of an entered URL if it does not have it (if isURL returns true)
 function addHTTPS(input) {
     try {
-        if(!/^https?:\/\//i.test(input)) {
-            return new URL('https://' + input).toString();
+        const trimmedInput = input.trim();
+
+        if(/^https?:\/\//i.test(trimmedInput)) {
+            return new URL(trimmedInput).toString();
         }
 
-        else {
-            return new URL(input).toString();
-        }
+        return new URL(`https://${trimmedInput}`).toString();
 
     } catch {
         return null;
@@ -310,12 +324,13 @@ function buildSearchQuery(input) {
 
 // HTTP Check - RISK SCORE
 function checkHTTP(input) {
+    let score = 0;
+    
     try {
-        let score = 0;
         const formatURL = new URL(input.trim());
         
         if(formatURL.protocol === 'http:') {
-            score += 10;
+            score += 20;
         }
 
         console.log(score); // Testing - Can Remove
@@ -331,8 +346,9 @@ function checkHTTP(input) {
 
 // Domain Name Check - RISK SCORE
 function checkDomainName(input) {
+    let score = 0;
+
     try {
-        let score = 0;
         const formatURL = new URL(input);
         const domainName = formatURL.hostname.toLowerCase();
         const ipFormat = /^\d{1,3}(\.\d{1,3}){3}$/;
@@ -355,25 +371,23 @@ function checkDomainName(input) {
 
         // Domain is IP address?
         if(ipFormat.test(domainName)) {
-            score += 25;
+            score += 30;
         }
 
         // Homograph attack? -> Browsers represent unicode as 'xn--'
         if(domainName.includes('xn--')) {
-            score += 25;
+            score += 30;
         }
 
         // Includes '@' symbol?
         if(input.includes('@')) {
-            score += 10;
+            score += 20;
         }
 
         // Multiple dots?
         if(dotCount > 3) {
-            score += 15;
+            score += 5;
         }
-
-        console.log(score); // Testing - Can Remove
 
         return score;
     }
@@ -390,11 +404,11 @@ app.on('certificate-error', (event, _wc, _url, _e, _c, validCert) => {
     validCert(false);
 });
 
-
 // Domain Age Check - RISK SCORE
 async function checkDomainAge(input) {
+    let score = 0;
+    
     try {
-        let score = 0;
         const formatURL = new URL(input);
         const domainName = formatURL.hostname.toLowerCase();
         const whoIsResult = await whois(domainName);
@@ -406,21 +420,15 @@ async function checkDomainAge(input) {
         ); 
 
         if(age <= 30) {
-            score += 50;
+            score += 20;
         }
 
         else if(age <= 90 && age > 30) {
-            score += 25;
-        }
-
-        else if(age <= 365 && age > 90) {
             score += 10;
         }
 
-        // Testing - Can Remove
-        else if(age > 365) {
-            score += 100;
-            console.log('OLD');
+        else if(age <= 365 && age > 90) {
+            score += 5;
         }
 
         return score;
@@ -434,115 +442,50 @@ async function checkDomainAge(input) {
 
 // Security Header Check - RISK SCORE
 async function checkSecurityHeader(input) {
+    let score = 0;
+    
     try {
-        let score = 0;
-
         const fetchedResponse = await fetch(input, {method: 'GET'});
         const responseHeaders = fetchedResponse.headers;
 
-        if(responseHeaders.has('x-frame-options')) {
-            score += 10;
-            console.log('x-frame-options'); // Testing - Can Remove
+        if(!responseHeaders.has('x-frame-options')) {
+            score += 5;
         }
 
-        if(responseHeaders.has('x-xss-protection')) {
-            score += 10;
-            console.log('x-xss-protection'); // Testing - Can Remove
+        if(!responseHeaders.has('x-xss-protection')) {
+            score += 2;
         }
 
-        if(responseHeaders.has('x-content-type-options')) {
-            score += 10;
-            console.log('x-content-type-options'); // Testing - Can Remove
+        if(!responseHeaders.has('x-content-type-options')) {
+            score += 5;
         }
 
-        if(responseHeaders.has('referrer-policy')) {
-            score += 10;
-            console.log('referrer-policy'); // Testing - Can Remove
+        if(!responseHeaders.has('referrer-policy')) {
+            score += 2;
         }
 
-        if(responseHeaders.has('content-type')) {
+        if(!responseHeaders.has('strict-transport-security')) {
             score += 10;
-            console.log('content-type'); // Testing - Can Remove
         }
 
-        if(responseHeaders.has('set-cookie')) {
+        if(!responseHeaders.has('content-security-policy')) {
             score += 10;
-            console.log('set-cookie'); // Testing - Can Remove
         }
 
-        if(responseHeaders.has('strict-transport-security')) {
-            score += 10;
-            console.log('strict-transport-security'); // Testing - Can Remove
+        if(!responseHeaders.has('cross-origin-opener-policy')) {
+            score += 2;
         }
 
-        if(responseHeaders.has('expect-ct')) {
-            score += 10;
-            console.log('expect-ct'); // Testing - Can Remove
+        if(!responseHeaders.has('cross-origin-embedder-policy')) {
+            score += 2;
         }
 
-        if(responseHeaders.has('content-security-policy')) {
-            score += 10;
-            console.log('content-security-policy'); // Testing - Can Remove
+        if(!responseHeaders.has('cross-origin-resource-policy')) {
+            score += 2;
         }
 
-        if(responseHeaders.has('access-control-allow-origin')) {
-            score += 10;
-            console.log('access-control-allow-origin'); // Testing - Can Remove
-        }
-
-        if(responseHeaders.has('cross-origin-opener-policy')) {
-            score += 10;
-            console.log('cross-origin-opener-policy'); // Testing - Can Remove
-        }
-
-        if(responseHeaders.has('cross-origin-embedder-policy')) {
-            score += 10;
-            console.log('cross-origin-embedder-policy'); // Testing - Can Remove
-        }
-
-        if(responseHeaders.has('cross-origin-resource-policy')) {
-            score += 10;
-            console.log('cross-origin-resource-policy'); // Testing - Can Remove
-        }
-
-        if(responseHeaders.has('permissions-policy') || responseHeaders.has('feature-policy')) {
-            score += 10;
-            console.log('permissions-policy'); // Testing - Can Remove
-        }
-
-        if(responseHeaders.has('server')) {
-            score += 10;
-            console.log('server'); // Testing - Can Remove
-        }
-
-        if(responseHeaders.has('x-powered-by')) {
-            score += 10;
-            console.log('x-powered-by'); // Testing - Can Remove
-        }
-
-        if(responseHeaders.has('x-aspnet-version')) {
-            score += 10;
-            console.log('x-aspnet-version'); // Testing - Can Remove
-        }
-
-        if(responseHeaders.has('x-aspnetmvc-version')) {
-            score += 10;
-            console.log('x-aspnetmvc-version'); // Testing - Can Remove
-        }
-
-        if(responseHeaders.has('x-robots-tag')) {
-            score += 10;
-            console.log('x-robots-tag'); // Testing - Can Remove
-        }
-
-        if(responseHeaders.has('x-dns-prefetch-control')) {
-            score += 10;
-            console.log('x-dns-prefetch-control'); // Testing - Can Remove
-        }
-
-        if(responseHeaders.has('public-key-pins')) {
-            score += 10;
-            console.log('public-key-pins'); // Testing - Can Remove
+        if(!responseHeaders.has('permissions-policy') && !responseHeaders.has('feature-policy')) {
+            score += 2;
         }
 
         return score;
@@ -561,8 +504,9 @@ function redirectAnalysis(input) {
 
 // Typosquatting Check - RISK SCORE
 function typosquattingCheck(input) {
+    let score = 0;
+    
     try {
-        let score = 0;
         const formatURL = new URL(input);
         const domainName = formatURL.hostname.toLowerCase().replace(/^www\./, '');
         const domainSplit = domainName.split('.');
@@ -629,6 +573,7 @@ function dnsCheck(input) {
 // Overall Risk Score
 async function riskScore(input) {
     let score = 0;
+    let action = 'allow';
     
     score += checkHTTP(input);
     score += checkDomainName(input);
@@ -640,15 +585,18 @@ async function riskScore(input) {
 
     console.log(score); // Testing - Can Remove
 
-    if(score > 100) {
-        window.loadFile('html/blocked.html');
+    if(score >= 100) {
+        action = 'block';
     }
 
-    else if(score > 50) {
-        window.loadFile('html/warned.html');
+    else if(score >= 75) {
+        action = 'warn';
     }
 
-    return score;
+    return {
+        score,
+        action
+    };
 }
 
 
@@ -661,27 +609,98 @@ ipcMain.handle('navigate:goto', async (_e, raw) => {
         };
     }
 
-    else if(isURL(raw)) {    
-        const url = addHTTPS(raw);
-        riskScore(raw);
+    const view = activeTab();
 
-        await tabs[activeTabTracker].view.webContents.loadURL(url);
+    if(isURL(raw)) {    
+        const url = addHTTPS(raw);
+
+        if(!url) {
+            return {
+                okay: false,
+                error: 'Invalid URL'
+            };
+        }
+
+        const result = await navigationOnceChecked(view, url);
+
         return {
             okay: true,
-            url
-        };
+            result
+        }
     }
     
     else {
         const search = buildSearchQuery(raw);
+        view.overrideRiskScore = true;
 
-        await tabs[activeTabTracker].view.webContents.loadURL(search);
+        try {
+            await view.webContents.loadURL(search);
+        }
+
+        catch(e) {
+            const errorMessage = String(error);
+
+            if(!errorMessage.includes('ERR_ABORTED') && !errorMessage.includes('ERR_FAILED')) {
+                console.log(e)
+            }
+        }
+
         return {
             okay: true,
             search
-        };
+        }
     }
 });
+
+async function checkOnLinkClick(input) {
+    const formatURL = addHTTPS(input);
+    const toBlock = await riskScore(formatURL);
+
+    if(toBlock.action === 'block') {
+        await tabs[activeTabTracker].view.webContents.loadFile(path.join(__dirname, 'html/blocked.html'));
+        return {
+            action: 'block',
+            score: toBlock.score
+        };
+    }
+
+    else if(toBlock.action === 'warn') {
+        await tabs[activeTabTracker].view.webContents.loadFile(path.join(__dirname, 'html/warned.html'));
+        return {
+            action: 'warn',
+            score: toBlock.score,
+            url: formatURL
+        };
+    }
+
+    return {
+        action: 'accept',
+        score: toBlock.score,
+        url: formatURL
+    }
+}
+
+async function navigationOnceChecked(view, input) {
+    const block = await checkOnLinkClick(input);
+
+    if(block.action === 'accept') {
+        view.overrideRiskScore = true;
+        
+        try {
+            await view.webContents.loadURL(block.url);
+        }
+
+        catch(e) {
+            const errorMessage = String(error);
+
+            if(errorMessage.includes('ERR_ABORTED') || errorMessage.includes('ERR_FAILED')) {
+                return block;
+            }
+        }
+    }
+
+    return block;
+}
 
 ipcMain.handle('navigate:back', () => {
     const view = activeTab();
