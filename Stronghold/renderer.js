@@ -33,6 +33,16 @@ if(settingsButton) {
     settingsButton.addEventListener('click', () => window.stronghold.settings());
 }
 
+const continueButton = document.getElementById('continue_button');
+if(continueButton) {
+    continueButton.addEventListener('click', () => window.stronghold.continue());
+}
+
+const leaveButton = document.getElementById('leave_button');
+if(leaveButton) {
+    leaveButton.addEventListener('click', () => window.stronghold.leave());
+}
+
 const searchAlgorithm = document.getElementById('navigation');
 if(searchAlgorithm) {
     searchAlgorithm.addEventListener('submit', async (e) => {

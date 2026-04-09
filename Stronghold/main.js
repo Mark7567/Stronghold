@@ -33,7 +33,8 @@ function createTab() {
 
     const tabStorage = {
         view: newTab,
-        title: 'Home Page'
+        title: 'Home Page',
+        pendingURL: null
     }
 
     newTab.webContents.loadFile(path.join('html/home.html'));
@@ -43,7 +44,11 @@ function createTab() {
 
     newTab.overrideRiskScore = false;
 
-    newTab.webContents.on('will-navigate', async (event, url) => {
+    newTab.webContents.on('will-navigate', async (event, url, _iip, isMainFrame) => {
+        if(!isMainFrame) {
+            return;
+        }
+        
         if(newTab.overrideRiskScore) {
             newTab.overrideRiskScore = false;
             return;
@@ -53,7 +58,11 @@ function createTab() {
         await navigationOnceChecked(newTab, url);
     });
 
-    newTab.webContents.on('will-redirect', async (event, url) => {
+    newTab.webContents.on('will-redirect', async (event, url, _iip, isMainFrame) => {
+        if(!isMainFrame) {
+            return;
+        }
+        
         if(newTab.overrideRiskScore) {
             newTab.overrideRiskScore = false;
             return;
@@ -83,6 +92,10 @@ function createTab() {
                 displayURL = 'stronghold/blocked';
             }
 
+            else if(url.includes('warned.html')) {
+                displayURL = 'stronghold/warning'
+            }
+
             else {
                 displayURL = url;
             }
@@ -107,8 +120,12 @@ function createTab() {
         updateTabName(newTab);
     });
 
-    newTab.webContents.on('did-fail-load', (_e, errorCode, _eD, _vURL, _iMF) => {
+    newTab.webContents.on('did-fail-load', (_e, errorCode, _eD, _vURL, isMainFrame) => {
         if(errorCode === -3 || errorCode === -2) {
+            return;
+        }
+
+        if(!isMainFrame) {
             return;
         }
     })
@@ -496,12 +513,6 @@ async function checkSecurityHeader(input) {
     }
 }
 
-// Redirect Analysis - RISK SCORE
-function redirectAnalysis(input) {
-    let score = 0;
-
-}
-
 // Typosquatting Check - RISK SCORE
 function typosquattingCheck(input) {
     let score = 0;
@@ -564,12 +575,6 @@ function typosquattingCheck(input) {
     }
 }
 
-// DNS Check - RISK SCORE
-function dnsCheck(input) {
-    let score = 0;
-
-}
-
 // Overall Risk Score
 async function riskScore(input) {
     let score = 0;
@@ -579,9 +584,7 @@ async function riskScore(input) {
     score += checkDomainName(input);
     score += await checkDomainAge(input);
     score += await checkSecurityHeader(input);
-    score += redirectAnalysis(input);
     score += typosquattingCheck(input);
-    score += dnsCheck(input);
 
     console.log(score); // Testing - Can Remove
 
@@ -589,7 +592,7 @@ async function riskScore(input) {
         action = 'block';
     }
 
-    else if(score >= 75) {
+    else if(score > 75) {
         action = 'warn';
     }
 
@@ -638,7 +641,7 @@ ipcMain.handle('navigate:goto', async (_e, raw) => {
         }
 
         catch(e) {
-            const errorMessage = String(error);
+            const errorMessage = String(e);
 
             if(!errorMessage.includes('ERR_ABORTED') && !errorMessage.includes('ERR_FAILED')) {
                 console.log(e)
@@ -652,12 +655,17 @@ ipcMain.handle('navigate:goto', async (_e, raw) => {
     }
 });
 
-async function checkOnLinkClick(input) {
+async function checkOnLinkClick(view, input) {
     const formatURL = addHTTPS(input);
     const toBlock = await riskScore(formatURL);
+    const tab = tabs.find(tab => tab.view === view);
 
     if(toBlock.action === 'block') {
-        await tabs[activeTabTracker].view.webContents.loadFile(path.join(__dirname, 'html/blocked.html'));
+        if(tab) {
+            tab.pendingURL = null;
+        }
+
+        await view.webContents.loadFile(path.join(__dirname, 'html/blocked.html'));
         return {
             action: 'block',
             score: toBlock.score
@@ -665,12 +673,20 @@ async function checkOnLinkClick(input) {
     }
 
     else if(toBlock.action === 'warn') {
-        await tabs[activeTabTracker].view.webContents.loadFile(path.join(__dirname, 'html/warned.html'));
+        if(tab) {
+            tab.pendingURL = formatURL;
+        }
+
+        await view.webContents.loadFile(path.join(__dirname, 'html/warned.html'));
         return {
             action: 'warn',
             score: toBlock.score,
             url: formatURL
         };
+    }
+
+    if(tab) {
+        tab.pendingURL = null;
     }
 
     return {
@@ -681,7 +697,7 @@ async function checkOnLinkClick(input) {
 }
 
 async function navigationOnceChecked(view, input) {
-    const block = await checkOnLinkClick(input);
+    const block = await checkOnLinkClick(view, input);
 
     if(block.action === 'accept') {
         view.overrideRiskScore = true;
@@ -691,7 +707,7 @@ async function navigationOnceChecked(view, input) {
         }
 
         catch(e) {
-            const errorMessage = String(error);
+            const errorMessage = String(e);
 
             if(errorMessage.includes('ERR_ABORTED') || errorMessage.includes('ERR_FAILED')) {
                 return block;
@@ -731,13 +747,51 @@ ipcMain.handle('navigate:home', () => {
 ipcMain.handle('navigate:login', async () => {
     await window.loadFile('html/taskbar.html');
     createTab();
-})
+});
 
 app.on('window-all-closed', () => {
     if(process.platform !== 'darwin') {
         app.quit();
     }
-})
+});
+
+ipcMain.handle('navigate:continue', async () => {
+    const view = activeTab();
+    const tab = tabs[activeTabTracker];
+
+    if(!tab || !tab.pendingURL) {
+        return {
+            okay: false
+        }
+    }
+
+    const pendingURL = tab.pendingURL;
+    tab.pendingURL = null;
+    view.overrideRiskScore = true;
+
+    try {
+        await view.webContents.loadURL(pendingURL);
+        return {
+            okay: true
+        };
+    }
+
+    catch {
+        console.log('Continue Failed :(')
+
+        return {
+            okay: false
+        };
+    }
+});
+
+ipcMain.handle('navigate:leave', () => {
+    const view = activeTab();
+
+    if(view.webContents.navigationHistory.canGoBack()) { 
+        view.webContents.navigationHistory.goBack();
+    }
+});
 
 
 // Dashboard Stuff

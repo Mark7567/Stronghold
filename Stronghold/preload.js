@@ -12,7 +12,9 @@ contextBridge.exposeInMainWorld('stronghold', {
     switchTab: (tabID) => ipcRenderer.invoke('tabs:switch-tab', tabID),
     settings: () => ipcRenderer.invoke('navigate:settings'),
     login: () => ipcRenderer.invoke('navigate:login'),
-    closeTab: (tabID) => ipcRenderer.invoke('tabs:close-tab', tabID)
+    closeTab: (tabID) => ipcRenderer.invoke('tabs:close-tab', tabID),
+    continue: () => ipcRenderer.invoke('navigate:continue'),
+    leave: () => ipcRenderer.invoke('navigate:leave')
 });
 
 ipcRenderer.on('tabs:update', (_e, data) => {
