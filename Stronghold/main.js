@@ -42,15 +42,22 @@ function createTab() {
     switchTab(tabs.length - 1);
     window.webContents.send('change-location', '');
 
-    newTab.overrideRiskScore = false;
+    newTab.overrideRiskScore = null;
 
     newTab.webContents.on('will-navigate', async (event, url, _iip, isMainFrame) => {
         if(!isMainFrame) {
             return;
         }
+
+        const inputURL = normaliseURL(url);
+        const outputURL = normaliseURL(newTab.overrideRiskScore);
+
+        console.log(inputURL);
+        console.log(outputURL);
+        console.log(inputURL === outputURL);
         
-        if(newTab.overrideRiskScore) {
-            newTab.overrideRiskScore = false;
+        if(outputURL && inputURL === outputURL) {
+            newTab.overrideRiskScore = null;
             return;
         }
 
@@ -63,8 +70,15 @@ function createTab() {
             return;
         }
         
-        if(newTab.overrideRiskScore) {
-            newTab.overrideRiskScore = false;
+        const inputURL = normaliseURL(url);
+        const outputURL = normaliseURL(newTab.overrideRiskScore);
+
+        console.log(inputURL);
+        console.log(outputURL);
+        console.log(inputURL === outputURL);
+        
+        if(outputURL && inputURL === outputURL) {
+            newTab.overrideRiskScore = null;
             return;
         }
 
@@ -338,6 +352,15 @@ function buildSearchQuery(input) {
 
 }
 
+function normaliseURL(input) {
+    try {
+        return new URL(input).toString();
+    }
+
+    catch {
+        return input;
+    }
+}
 
 // HTTP Check - RISK SCORE
 function checkHTTP(input) {
@@ -592,7 +615,7 @@ async function riskScore(input) {
         action = 'block';
     }
 
-    else if(score > 75) {
+    else if(score >= 0) {
         action = 'warn';
     }
 
@@ -634,7 +657,7 @@ ipcMain.handle('navigate:goto', async (_e, raw) => {
     
     else {
         const search = buildSearchQuery(raw);
-        view.overrideRiskScore = true;
+        view.overrideRiskScore = normaliseURL(search);
 
         try {
             await view.webContents.loadURL(search);
@@ -700,7 +723,7 @@ async function navigationOnceChecked(view, input) {
     const block = await checkOnLinkClick(view, input);
 
     if(block.action === 'accept') {
-        view.overrideRiskScore = true;
+        view.overrideRiskScore = normaliseURL(block.url);
         
         try {
             await view.webContents.loadURL(block.url);
@@ -767,7 +790,7 @@ ipcMain.handle('navigate:continue', async () => {
 
     const pendingURL = tab.pendingURL;
     tab.pendingURL = null;
-    view.overrideRiskScore = true;
+    view.overrideRiskScore = pendingURL;
 
     try {
         await view.webContents.loadURL(pendingURL);
@@ -826,7 +849,11 @@ ipcMain.handle('navigate:settings', async (_e) => {
 
 
 
-// Bookmarks Stuff
+/* Bookmarks Stuff
+    Thinking about not doing for security reasons
+    Since the focus is on security it should essentially be a clean slate every time 
+    Same idea as wiping cookies on exit every time
+*/
 function bookmarks() { 
 
 }
