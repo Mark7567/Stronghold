@@ -8,6 +8,7 @@ const { parse } = require('tldts');
 let window;
 let tabs = [];
 let activeTabTracker = -1;
+let userProtectionLevel = 'normal';
 
 // Layout logic to generate the views
 function layout(view) {
@@ -18,7 +19,6 @@ function layout(view) {
     const [width, height] = window.getContentSize();
     view.setBounds({ x: 0, y: 145, width: width, height: height - 145});
 }
-
 
 // Tab Stuff
 function createTab() {
@@ -327,7 +327,6 @@ function isURL(input) {
     return true;
 }
 
-
 // Adds https:// to the beginning of an entered URL if it does not have it (if isURL returns true)
 function addHTTPS(input) {
     try {
@@ -343,7 +342,6 @@ function addHTTPS(input) {
         return null;
     }
 }
-
 
 // Builds a search query if isURL returns false
 function buildSearchQuery(input) {
@@ -382,7 +380,6 @@ function checkHTTP(input) {
         return score;
     }
 }
-
 
 // Domain Name Check - RISK SCORE
 function checkDomainName(input) {
@@ -437,7 +434,6 @@ function checkDomainName(input) {
     }
 }
 
-
 // TLS Certificate Validation - RISK SCORE
 app.on('certificate-error', (event, _wc, _url, _e, _c, validCert) => {
     event.preventDefault();
@@ -478,7 +474,6 @@ async function checkDomainAge(input) {
         return score;
     }
 }
-
 
 // Security Header Check - RISK SCORE
 async function checkSecurityHeader(input) {
@@ -609,13 +604,13 @@ async function riskScore(input) {
     score += await checkSecurityHeader(input);
     score += typosquattingCheck(input);
 
-    console.log(score); // Testing - Can Remove
+    const {warnScore, blockScore} = getProtectionLevel(userProtectionLevel);
 
-    if(score >= 100) {
+    if(score >= blockScore) {
         action = 'block';
     }
 
-    else if(score >= 0) {
+    else if(score >= warnScore) {
         action = 'warn';
     }
 
@@ -624,7 +619,6 @@ async function riskScore(input) {
         action
     };
 }
-
 
 // Search Bar + Navigation Buttons
 ipcMain.handle('navigate:goto', async (_e, raw) => {
@@ -772,10 +766,16 @@ ipcMain.handle('navigate:login', async () => {
     createTab();
 });
 
-app.on('window-all-closed', () => {
+app.on('window-all-closed', async () => {
+    await session.defaultSession.clearStorageData();;
+
     if(process.platform !== 'darwin') {
         app.quit();
     }
+});
+
+app.on('before-quit', async () => {
+    await session.defaultSession.clearStorageData();
 });
 
 ipcMain.handle('navigate:continue', async () => {
@@ -816,6 +816,13 @@ ipcMain.handle('navigate:leave', () => {
     }
 });
 
+ipcMain.handle('settings:protection-level', (_e, protectionLevel) => {
+    userProtectionLevel = protectionLevel;
+    return {
+        okay: true
+    };
+});
+
 
 // Dashboard Stuff
 function dashboard() {
@@ -831,13 +838,6 @@ ipcMain.handle('navigate:dashboard', async (_e) => {
     }
 })
 
-
-
-// Settings Stuff
-function settings() {
-
-}
-
 ipcMain.handle('navigate:settings', async (_e) => {
     const html = 'html/settings.html'
     await tabs[activeTabTracker].view.webContents.loadFile(html);
@@ -846,19 +846,6 @@ ipcMain.handle('navigate:settings', async (_e) => {
         html
     }
 })
-
-
-
-/* Bookmarks Stuff
-    Thinking about not doing for security reasons
-    Since the focus is on security it should essentially be a clean slate every time 
-    Same idea as wiping cookies on exit every time
-*/
-function bookmarks() { 
-
-}
-
-
 
 // Downloads Stuff --> Block cmd, ps1, bat, js. Warn exe, msi. Allow everything else
 let recentDownloads = [];
@@ -901,4 +888,32 @@ function downloadHandler() {
         item.on('updated', (_e, state) => {downloadsRecord.state = state;})
         item.once('done', (_e, state) => {downloadsRecord.state = state;});
     });
+}
+
+function getProtectionLevel(protectionLevel) {
+    if(protectionLevel === 'strict') {
+        return {
+            warnScore: 25,
+            blockScore: 50
+        }
+    }
+
+    if(protectionLevel === 'normal') {
+        return {
+            warnScore: 75,
+            blockScore: 100
+        }
+    }
+
+    if(protectionLevel === 'warnOnly') {
+        return {
+            warnScore: 50,
+            blockScore: 10000
+        }
+    }
+
+    return {
+        warnScore: 75,
+        blockScore: 100
+    }
 }

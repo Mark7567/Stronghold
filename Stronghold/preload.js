@@ -14,7 +14,8 @@ contextBridge.exposeInMainWorld('stronghold', {
     login: () => ipcRenderer.invoke('navigate:login'),
     closeTab: (tabID) => ipcRenderer.invoke('tabs:close-tab', tabID),
     continue: () => ipcRenderer.invoke('navigate:continue'),
-    leave: () => ipcRenderer.invoke('navigate:leave')
+    leave: () => ipcRenderer.invoke('navigate:leave'),
+    protectionLevel: (protectionLevel) => ipcRenderer.invoke('settings:protection-level', protectionLevel) 
 });
 
 ipcRenderer.on('tabs:update', (_e, data) => {

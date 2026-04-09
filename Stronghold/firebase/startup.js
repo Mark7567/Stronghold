@@ -2,8 +2,6 @@ import { db, auth } from './firebaseInitialiser.js';
 import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js';
 import { setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-auth.js';
 
-console.log('STARTUP TEST');
-
 async function checkUser(user) {
     const userID = doc(db, 'user', user.uid);
     const userAccount = await getDoc(userID);
@@ -19,9 +17,8 @@ async function checkUser(user) {
                 level: 0,
                 safeDayStreak: 0,
                 settings: {
-                    clearCookies: true,
                     overrideDownloads: false,
-                    searchHistory: false,
+                    protectionLevel: 'normal',
                     theme: 'dark'
                 },
                 sitesBlocked: 0,

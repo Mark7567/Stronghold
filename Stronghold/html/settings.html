@@ -18,7 +18,39 @@
         <div id = "underline">
 
         </div>
-    
-        <script src = "../renderer.js"></script>
+
+        <div class = 'protection_selection'>
+            <label class = 'protection_level'>
+                <input type = 'radio' name = 'protectionLevel' value = 'strict'>
+                <span class = 'option'>
+
+                </span>
+                <span class = 'text'>
+                    Strict -> Warn: 25+, Auto-Block: 50+
+                </span>
+            </label>
+
+            <label class = 'protection_level'>
+                <input type = 'radio' name = 'protectionLevel' value = 'normal'>
+                <span class = 'option'>
+
+                </span>
+                <span class = 'text'>
+                    Normal -> Warn: 75+, Auto-Block: 100+
+                </span>
+            </label>
+
+            <label class = 'protection_level'>
+                <input type = 'radio' name = 'protectionLevel' value = 'warnOnly'>
+                <span class = 'option'>
+
+                </span>
+                <span class = 'text'>
+                    Warn Only -> Warn: 50+, Auto-Block: Never
+                </span>
+            </label>
+        </div>
+        
+        <script type = 'module' src = "../firebase/settings.js"></script>
     </body>
 </html>
