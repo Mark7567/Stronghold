@@ -50,6 +50,38 @@
                 </span>
             </label>
         </div>
+
+        <div class = 'download_selection'>
+            <label class = 'download_level'>
+                <input type = 'radio' name = 'downloadLevel' value = 'strict'>
+                <span class = 'option'>
+
+                </span>
+                <span class = 'text'>
+                    Strict -> Blocks all potentially malicious extensions
+                </span>
+            </label>
+
+            <label class = 'download_level'>
+                <input type = 'radio' name = 'downloadLevel' value = 'normal'>
+                <span class = 'option'>
+
+                </span>
+                <span class = 'text'>
+                    Normal -> Blocks most potentially malicious extensions, warns on others
+                </span>
+            </label>
+
+            <label class = 'download_level'>
+                <input type = 'radio' name = 'downloadLevel' value = 'warnOnly'>
+                <span class = 'option'>
+
+                </span>
+                <span class = 'text'>
+                    Warn Only -> Does not block any extensions, warns against all potentially malicious
+                </span>
+            </label>
+        </div>
         <script type = 'module' src = "../firebase/settings.js"></script>
     </body>
 </html>

@@ -37,6 +37,11 @@ const blockedExtensions = [
     '.js'
 ];
 
+const warnedExtensions = [
+    '.exe',
+    '.msi'
+];
+
 // List of words commonly used in phishing links / attacks
 const phishingWords = [
     'login',
@@ -61,5 +66,6 @@ module.exports = {
     knownDomains,
     blockedExtensions,
     phishingWords,
-    validEndings
+    validEndings,
+    warnedExtensions
 };

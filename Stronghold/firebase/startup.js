@@ -19,6 +19,7 @@ async function checkUser(user) {
                 settings: {
                     overrideDownloads: false,
                     protectionLevel: 'normal',
+                    downloadLevel: 'normal',
                     theme: 'dark'
                 },
                 sitesBlocked: 0,

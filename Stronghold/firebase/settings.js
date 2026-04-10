@@ -13,7 +13,7 @@ import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.4.0/fir
                 no block - warns on sketchy but never straight blocks)
 */
 
-async function fetchProtectionLevel(user) {
+async function fetchSettings(user) {
     if(!user) {
         return;
     }
@@ -27,22 +27,31 @@ async function fetchProtectionLevel(user) {
 
     const userData = userAccount.data();
     const protectionLevel = userData.settings?.protectionLevel;
+    const downloadLevel = userData.settings?.downloadLevel;
 
-    console.log('Fetched Level:', protectionLevel);
+    console.log('Fetched Protection Level:', protectionLevel);
+    console.log('Fetched Download Level:', downloadLevel);
 
-    const selectedOption = document.querySelector(`input[name='protectionLevel'][value='${protectionLevel}']`);
+    const selectedProtectionOption = document.querySelector(`input[name='protectionLevel'][value='${protectionLevel}']`);
+    const selectedDownloadOption = document.querySelector(`input[name='downloadLevel'][value='${downloadLevel}']`);
 
-    if(selectedOption) {
-        selectedOption.checked = true;
+    if(selectedProtectionOption) {
+        selectedProtectionOption.checked = true;
+    }
+
+    if(selectedDownloadOption) {
+        selectedDownloadOption.checked = true;
     }
 
     await window.stronghold.protectionLevel(protectionLevel);
+    await window.stronghold.downloadLevel(downloadLevel);
 }
 
-async function putProtectionLevel(protectionLevel) {
+async function putSettings(protectionLevel, downloadLevel) {
     const user = auth.currentUser;
     
     console.log('Current user:', user, 'current level:', protectionLevel);
+    console.log('Download level:', downloadLevel);
 
     if(!user) {
         return;
@@ -56,20 +65,36 @@ async function putProtectionLevel(protectionLevel) {
     }
 
     await updateDoc(userID, {'settings.protectionLevel': protectionLevel});
+    await updateDoc(userID, {'settings.downloadLevel': downloadLevel});
 
-    console.log('Updated:', protectionLevel);
+    console.log('Updated:', protectionLevel, downloadLevel);
 
     await window.stronghold.protectionLevel(protectionLevel);
+    await window.stronghold.downloadLevel(downloadLevel);
 }
 
-function protectionLevelListeners() {
+function settingsListeners() {
     const protectionOptions = document.querySelectorAll('input[name="protectionLevel"]');
+    const downloadOptions = document.querySelectorAll('input[name="downloadLevel"]');
 
     protectionOptions.forEach((radio) => { radio.addEventListener('change', async () => {
             if(radio.checked) {
-                await putProtectionLevel(radio.value);
+                const downloadLevel = document.querySelector('input[name="downloadLevel"]:checked');
+
+                await putSettings(radio.value, downloadLevel);
 
                 console.log('Radio change:', radio.value);
+            }
+        });
+    });
+
+    downloadOptions.forEach((radio) => {radio.addEventListener('change', async () => {
+            if(radio.checked) {
+                const protectionLevel = document.querySelector('input[name="protectionLevel"]:checked');
+
+                await putSettings(protectionLevel, radio.value);
+
+                console.log('Radio changed:', radio.value);
             }
         });
     });
@@ -77,11 +102,11 @@ function protectionLevelListeners() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     const user = auth.currentUser;
-    protectionLevelListeners();
+    settingsListeners();
 
     onAuthStateChanged(auth, async (user) => {
         if(user) {
-            await fetchProtectionLevel(user);
+            await fetchSettings(user);
         }
     });
 });

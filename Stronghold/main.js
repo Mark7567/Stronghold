@@ -2,13 +2,15 @@ const { app, BrowserWindow, BrowserView, ipcMain, session } = require('electron'
 const path = require('node:path');
 const whois = require('whois-json');
 const damerauLevenshtein = require('talisman/metrics/damerau-levenshtein');
-const { knownDomains, blockedExtensions, phishingWords, validEndings } = require('./lists');
+const { knownDomains, blockedExtensions, phishingWords, validEndings, warnedExtensions } = require('./lists');
 const { parse } = require('tldts');
 
 let window;
 let tabs = [];
 let activeTabTracker = -1;
+let recentDownloads = [];
 let userProtectionLevel = 'normal';
+let userDownloadLevel = 'normal';
 
 // Layout logic to generate the views
 function layout(view) {
@@ -823,6 +825,13 @@ ipcMain.handle('settings:protection-level', (_e, protectionLevel) => {
     };
 });
 
+ipcMain.handle('settings:download-level', (_e, downloadLevel) => {
+    userDownloadLevel = downloadLevel;
+    return {
+        okay: true
+    };
+});
+
 
 // Dashboard Stuff
 function dashboard() {
@@ -850,18 +859,26 @@ ipcMain.handle('navigate:settings', async (_e) => {
     }
 })
 
-// Downloads Stuff --> Block cmd, ps1, bat, js. Warn exe, msi. Allow everything else
-let recentDownloads = [];
-
+// Downloads Stuff
 function downloadToBeBlocked(file) {
     const fileName = file.trim().toLowerCase();
-    
-    if(blockedExtensions.some(extension => fileName.endsWith(extension))) {
-        return true;
+    const {extensionsToBlock, extensionsToWarn} = getDownloadLevel(userDownloadLevel);
+    let action = 'allow';
+
+    if(extensionsToBlock.some(extension => fileName.endsWith(extension))) {
+        return {
+            action: 'block'
+        };
     }
 
-    else {
-        return false;
+    if(extensionsToWarn.some(extension => fileName.endsWith(extension))) {
+        return {
+            action: 'warn'
+        };
+    }
+
+    return {
+        action
     }
 }
 
@@ -869,7 +886,12 @@ function downloadHandler() {
     session.defaultSession.on('will-download', (_e, item, _wC) => {
         const file = item.getFilename();
 
-        if(downloadToBeBlocked(file)) {
+        if(downloadToBeBlocked(file).action === 'block') {
+            item.cancel();
+            return;
+        }
+
+        if(downloadToBeBlocked(file).action === 'warn') {
             item.cancel();
             return;
         }
@@ -898,25 +920,53 @@ function getProtectionLevel(protectionLevel) {
         return {
             warnScore: 25,
             blockScore: 50
-        }
+        };
     }
 
     if(protectionLevel === 'normal') {
         return {
             warnScore: 75,
             blockScore: 100
-        }
+        };
     }
 
     if(protectionLevel === 'warnOnly') {
         return {
             warnScore: 50,
             blockScore: 10000
-        }
+        };
     }
 
     return {
         warnScore: 75,
         blockScore: 100
+    };
+}
+
+function getDownloadLevel(downloadLevel) {
+    if(downloadLevel === 'strict') {
+        return {
+            extensionsToBlock: [...blockedExtensions, ...warnedExtensions],
+            extensionsToWarn: []
+        };
     }
+
+    if(downloadLevel === 'normal') {
+        return {
+            extensionsToBlock: blockedExtensions,
+            extensionsToWarn: warnedExtensions
+        };
+    }
+
+    if(downloadLevel === 'warnOnly') {
+        return {
+            extensionsToBlock: [],
+            extensionsToWarn: [...blockedExtensions, ...warnedExtensions]
+        };
+    }
+
+    return {
+        extensionsToBlock: blockedExtensions,
+        extensionsToWarn: warnedExtensions
+    };
 }
