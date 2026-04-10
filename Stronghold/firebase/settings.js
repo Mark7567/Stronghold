@@ -64,8 +64,10 @@ async function putSettings(protectionLevel, downloadLevel) {
         return;
     }
 
-    await updateDoc(userID, {'settings.protectionLevel': protectionLevel});
-    await updateDoc(userID, {'settings.downloadLevel': downloadLevel});
+    await updateDoc(userID, {
+        'settings.protectionLevel': protectionLevel,
+        'settings.downloadLevel': downloadLevel
+    });
 
     console.log('Updated:', protectionLevel, downloadLevel);
 
@@ -80,8 +82,9 @@ function settingsListeners() {
     protectionOptions.forEach((radio) => { radio.addEventListener('change', async () => {
             if(radio.checked) {
                 const downloadLevel = document.querySelector('input[name="downloadLevel"]:checked');
+                const downloadOption = downloadLevel ? downloadLevel.value : 'normal';
 
-                await putSettings(radio.value, downloadLevel);
+                await putSettings(radio.value, downloadOption);
 
                 console.log('Radio change:', radio.value);
             }
@@ -91,8 +94,9 @@ function settingsListeners() {
     downloadOptions.forEach((radio) => {radio.addEventListener('change', async () => {
             if(radio.checked) {
                 const protectionLevel = document.querySelector('input[name="protectionLevel"]:checked');
+                const protectionOption = protectionLevel ? protectionLevel.value : 'normal';
 
-                await putSettings(protectionLevel, radio.value);
+                await putSettings(protectionOption, radio.value);
 
                 console.log('Radio changed:', radio.value);
             }
