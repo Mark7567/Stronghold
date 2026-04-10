@@ -37,7 +37,7 @@ function createTab() {
         pendingURL: null
     }
 
-    newTab.webContents.loadFile(path.join('html/home.html'));
+    newTab.webContents.loadURL('http://localhost:1000/html/home.html');
     tabs.push(tabStorage);
     switchTab(tabs.length - 1);
     window.webContents.send('change-location', '');
@@ -682,7 +682,7 @@ async function checkOnLinkClick(view, input) {
             tab.pendingURL = null;
         }
 
-        await view.webContents.loadFile(path.join(__dirname, 'html/blocked.html'));
+        await view.webContents.loadURL('http://localhost:1000/html/blocked.html');
         return {
             action: 'block',
             score: toBlock.score
@@ -694,7 +694,7 @@ async function checkOnLinkClick(view, input) {
             tab.pendingURL = formatURL;
         }
 
-        await view.webContents.loadFile(path.join(__dirname, 'html/warned.html'));
+        await view.webContents.loadURL('http://localhost:1000/html/warned.html');
         return {
             action: 'warn',
             score: toBlock.score,
@@ -758,11 +758,11 @@ ipcMain.handle('navigate:reload', () => {
 
 ipcMain.handle('navigate:home', () => {
     const view = activeTab();
-    view.webContents.loadFile(path.join('html/home.html'));
+    view.webContents.loadURL('http://localhost:1000/html/home.html');
 });
 
 ipcMain.handle('navigate:login', async () => {
-    await window.loadFile('html/taskbar.html');
+    await window.loadURL('http://localhost:1000/html/taskbar.html');
     createTab();
 });
 
@@ -830,8 +830,8 @@ function dashboard() {
 }
 
 ipcMain.handle('navigate:dashboard', async (_e) => {
-    const html = 'html/dashboard.html' 
-    await tabs[activeTabTracker].view.webContents.loadFile(html);
+    const html = 'http://localhost:1000/html/dashboard.html' 
+    await tabs[activeTabTracker].view.webContents.loadURL(html);
     return {
         okay: true,
         html
@@ -839,8 +839,11 @@ ipcMain.handle('navigate:dashboard', async (_e) => {
 })
 
 ipcMain.handle('navigate:settings', async (_e) => {
-    const html = 'html/settings.html'
-    await tabs[activeTabTracker].view.webContents.loadFile(html);
+    const html = 'http://localhost:1000/html/settings.html'
+    await tabs[activeTabTracker].view.webContents.loadURL(html);
+
+    tabs[activeTabTracker].view.webContents.openDevTools({ mode: 'detach' });
+
     return {
         okay: true,
         html

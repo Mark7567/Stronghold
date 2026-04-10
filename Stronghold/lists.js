@@ -1,3 +1,4 @@
+// List of common domains used to check for typosquatting
 const knownDomains = [
         'google',
         'youtube',
@@ -28,6 +29,7 @@ const knownDomains = [
         'ebay'
 ];
 
+// List of extensions which are typically malicious and should be instantly blocked
 const blockedExtensions = [
     '.cmd',
     '.ps1',
@@ -35,12 +37,14 @@ const blockedExtensions = [
     '.js'
 ];
 
+// List of words commonly used in phishing links / attacks
 const phishingWords = [
     'login',
     'secure',
     'verification'
 ];
 
+// List of url endings to check if a Google search query is needed
 const validEndings = [
     '.com',
     '.co.uk',
@@ -48,9 +52,11 @@ const validEndings = [
     '.net',
     '.edu',
     '.gov',
-    '.uk'
+    '.uk',
+    '.tv'
 ];
 
+// Exports to take lists from here into main.js
 module.exports = {
     knownDomains,
     blockedExtensions,

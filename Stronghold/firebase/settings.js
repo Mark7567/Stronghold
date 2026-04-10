@@ -1,3 +1,7 @@
+import { db, auth } from './firebaseInitialiser.js';
+import { doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-auth.js';
+
 /* Settings Stuff
         - Light / Dark mode
         - Parental Control PIN (to be used when changing security-based settings)
@@ -8,10 +12,6 @@
                 intermediate - .ps1, .cmd etc. straight block but .exe etc. get warned 
                 no block - warns on sketchy but never straight blocks)
 */
-
-import { db, auth } from './firebaseInitialiser.js';
-import { doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js';
-import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-auth.js';
 
 async function fetchProtectionLevel(user) {
     if(!user) {
