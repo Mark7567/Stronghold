@@ -19,7 +19,8 @@ contextBridge.exposeInMainWorld('stronghold', {
     downloadLevel: (downloadLevel) => ipcRenderer.invoke('settings:download-level', downloadLevel),
     setTheme: (theme) => ipcRenderer.invoke('settings:set-theme', theme),
     getTheme: () => ipcRenderer.invoke('settings:get-theme'),
-    onThemeChange: (cb) => ipcRenderer.on('change-theme', (_e, theme) => cb(theme))
+    onThemeChange: (cb) => ipcRenderer.on('change-theme', (_e, theme) => cb(theme)),
+    startPage: (startPage) => ipcRenderer.invoke('settings:start-page', startPage)
 });
 
 ipcRenderer.on('tabs:update', (_e, data) => {

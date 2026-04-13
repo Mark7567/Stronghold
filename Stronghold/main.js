@@ -4,6 +4,7 @@ const whois = require('whois-json');
 const damerauLevenshtein = require('talisman/metrics/damerau-levenshtein');
 const { knownDomains, blockedExtensions, phishingWords, validEndings, warnedExtensions } = require('./lists');
 const { parse } = require('tldts');
+const { start } = require('node:repl');
 
 let window;
 let tabs = [];
@@ -13,7 +14,7 @@ let userProtectionLevel = 'normal';
 let userDownloadLevel = 'normal';
 let userTheme = 'light';
 let userPin = null;
-let startPage = 'home page';
+let userStartPage = 'home_page';
 
 // Layout logic to generate the views
 function layout(view) {
@@ -42,7 +43,7 @@ function createTab() {
         pendingURL: null
     }
 
-    newTab.webContents.loadURL('http://localhost:1000/html/home.html');
+    newTab.webContents.loadURL(getStartPage(userStartPage));
     tabs.push(tabStorage);
     switchTab(tabs.length - 1);
     window.webContents.send('change-location', '');
@@ -839,7 +840,7 @@ ipcMain.handle('navigate:dashboard', async (_e) => {
 ipcMain.handle('navigate:settings', async (_e) => {
     const html = 'http://localhost:1000/html/settings.html'
     await tabs[activeTabTracker].view.webContents.loadURL(html);
-    
+
     return {
         okay: true,
         html
@@ -880,6 +881,13 @@ ipcMain.handle('settings:set-theme', (_e, theme) => {
 
 ipcMain.handle('settings:get-theme', () => {
     return userTheme;
+});
+
+ipcMain.handle('settings:start-page', (_e, startPage) => {
+    userStartPage = startPage;
+    return {
+        okay: true
+    };
 });
 
 // Downloads Stuff
@@ -992,4 +1000,12 @@ function getDownloadLevel(downloadLevel) {
         extensionsToBlock: blockedExtensions,
         extensionsToWarn: warnedExtensions
     };
+}
+
+function getStartPage(startPage) {    
+    if(startPage === 'dashboard') {
+        return 'http://localhost:1000/html/dashboard.html';
+    }
+
+    return 'http://localhost:1000/html/home.html';
 }

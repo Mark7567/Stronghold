@@ -20,7 +20,8 @@ async function checkUser(user) {
                     downloadLevel: 'normal',
                     protectionLevel: 'normal',
                     overrideDownloads: false,
-                    theme: 'light'
+                    theme: 'light',
+                    startPage: 'home_page'
                 },
                 sitesBlocked: 0,
                 username: user.displayName,
@@ -55,6 +56,10 @@ async function googleSignIn() {
         const userAccount = await getDoc(userID);
         const userData = userAccount.data();
         const savedTheme = userData.settings?.theme;
+        const startPage = userData.settings?.startPage;
+
+        await window.stronghold.startPage(startPage);
+        console.log('Start Page Set:', startPage);
 
         await window.stronghold.setTheme(savedTheme);
         console.log('Theme Set:', savedTheme);
