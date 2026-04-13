@@ -20,7 +20,7 @@ async function checkUser(user) {
                     downloadLevel: 'normal',
                     protectionLevel: 'normal',
                     overrideDownloads: false,
-                    theme: 'dark'
+                    theme: 'light'
                 },
                 sitesBlocked: 0,
                 username: user.displayName,
@@ -51,6 +51,14 @@ async function googleSignIn() {
         await checkUser(result.user);
         console.log('firestore check complete');
 
+        const userID = doc(db, 'user', result.user.uid);
+        const userAccount = await getDoc(userID);
+        const userData = userAccount.data();
+        const savedTheme = userData.settings?.theme;
+
+        await window.stronghold.setTheme(savedTheme);
+        console.log('Theme Set:', savedTheme);
+
         await window.stronghold.login();
         console.log('entered browser');
 
@@ -62,6 +70,7 @@ async function googleSignIn() {
 
 async function guestBrowsing() {
     sessionStorage.setItem('guest_browsing', 'true');
+    await window.stronhold.setTheme('light');
     await window.stronghold.login();
 }
 

@@ -1,7 +1,8 @@
 /* CSS for the home page */
 
 body {
-    background-color: #D9D9D9;
+    background-color: var(--backgroundColour);
+    color: var(--textColour);
 }
 
 @font-face {

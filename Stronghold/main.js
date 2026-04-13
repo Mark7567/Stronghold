@@ -11,6 +11,9 @@ let activeTabTracker = -1;
 let recentDownloads = [];
 let userProtectionLevel = 'normal';
 let userDownloadLevel = 'normal';
+let userTheme = 'light';
+let userPin = null;
+let startPage = 'home page';
 
 // Layout logic to generate the views
 function layout(view) {
@@ -818,21 +821,6 @@ ipcMain.handle('navigate:leave', () => {
     }
 });
 
-ipcMain.handle('settings:protection-level', (_e, protectionLevel) => {
-    userProtectionLevel = protectionLevel;
-    return {
-        okay: true
-    };
-});
-
-ipcMain.handle('settings:download-level', (_e, downloadLevel) => {
-    userDownloadLevel = downloadLevel;
-    return {
-        okay: true
-    };
-});
-
-
 // Dashboard Stuff
 function dashboard() {
 
@@ -847,17 +835,52 @@ ipcMain.handle('navigate:dashboard', async (_e) => {
     }
 })
 
+// Settings Stuff
 ipcMain.handle('navigate:settings', async (_e) => {
     const html = 'http://localhost:1000/html/settings.html'
     await tabs[activeTabTracker].view.webContents.loadURL(html);
-
-    tabs[activeTabTracker].view.webContents.openDevTools({ mode: 'detach' });
-
+    
     return {
         okay: true,
         html
     }
 })
+
+ipcMain.handle('settings:protection-level', (_e, protectionLevel) => {
+    userProtectionLevel = protectionLevel;
+    return {
+        okay: true
+    };
+});
+
+ipcMain.handle('settings:download-level', (_e, downloadLevel) => {
+    userDownloadLevel = downloadLevel;
+    return {
+        okay: true
+    };
+});
+
+ipcMain.handle('settings:set-theme', (_e, theme) => {
+    userTheme = theme;
+    
+    if(window && !window.isDestroyed()) {
+        window.webContents.send('change-theme', userTheme);
+    }
+
+    tabs.forEach((tab) => {
+        if(tab.view && tab.view.webContents) {
+            tab.view.webContents.send('change-theme', userTheme);
+        }
+    });
+    
+    return {
+        okay: true
+    };
+});
+
+ipcMain.handle('settings:get-theme', () => {
+    return userTheme;
+});
 
 // Downloads Stuff
 function downloadToBeBlocked(file) {

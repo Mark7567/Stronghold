@@ -8,6 +8,7 @@
         </title>
 
         <link rel = "stylesheet" href = "../css/settings.css">
+        <link rel = 'stylesheet' href = '../css/theme.css'>
     </head>
 
     <body>
@@ -82,6 +83,29 @@
                 </span>
             </label>
         </div>
+
+        <div class = 'theme_selection'>
+            <label class = 'theme_chosen'>
+                <input type = 'radio' name = 'theme' value = 'light'>
+                <span class = 'option'>
+
+                </span>
+                <span class = 'text'>
+                    Light Mode
+                </span>
+            </label>
+
+            <label class = 'theme_chosen'>
+                <input type = 'radio' name = 'theme' value = 'dark'>
+                <span class = 'option'>
+
+                </span>
+                <span class = 'text'>
+                    Dark Mode
+                </span>
+            </label>
+        </div>
+        <script type = 'module' src = '../theme.js'></script>
         <script type = 'module' src = "../firebase/settings.js"></script>
     </body>
 </html>
