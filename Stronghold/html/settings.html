@@ -7,127 +7,135 @@
             Stronghold Browser
         </title>
 
-        <link rel = "stylesheet" href = "../css/settings.css">
-        <link rel = 'stylesheet' href = '../css/theme.css'>
+        <link rel = 'stylesheet' href='../css/theme.css'>
+        <link rel = "stylesheet" href="../css/settings.css">
     </head>
 
     <body>
-        <h1 id = "title">
-            Settings
-        </h1>
+        <div class = 'settings_page'>
+            <div class = 'settings_page_content'>
+                <h1 id = "title">
+                    Settings
+                </h1>
 
-        <div id = "underline">
+                <div id = "underline">
 
+                </div>
+
+                <div class = 'protection_selection'>
+                    <label class = 'protection_level'>
+                        <input type = 'radio' name = 'protectionLevel' value = 'strict'>
+                        <span class = 'option'>
+
+                        </span>
+                        <span class = 'text'>
+                            Strict -> Warn: 25+, Auto-Block: 50+
+                        </span>
+                    </label>
+
+                    <label class = 'protection_level'>
+                        <input type = 'radio' name = 'protectionLevel' value = 'normal'>
+                        <span class = 'option'>
+
+                        </span>
+                        <span class = 'text'>
+                            Normal -> Warn: 75+, Auto-Block: 100+
+                        </span>
+                    </label>
+
+                    <label class = 'protection_level'>
+                        <input type = 'radio' name = 'protectionLevel' value = 'warnOnly'>
+                        <span class = 'option'>
+
+                        </span>
+                        <span class = 'text'>
+                            Warn Only -> Warn: 50+, Auto-Block: Never
+                        </span>
+                    </label>
+                </div>
+
+                <div class = 'download_selection'>
+                    <label class = 'download_level'>
+                        <input type = 'radio' name = 'downloadLevel' value = 'strict'>
+                        <span class = 'option'>
+
+                        </span>
+                        <span class = 'text'>
+                            Strict -> Blocks all potentially malicious extensions
+                        </span>
+                    </label>
+
+                    <label class = 'download_level'>
+                        <input type = 'radio' name = 'downloadLevel' value = 'normal'>
+                        <span class = 'option'>
+
+                        </span>
+                        <span class = 'text'>
+                            Normal -> Blocks most potentially malicious extensions, warns on others
+                        </span>
+                    </label>
+
+                    <label class = 'download_level'>
+                        <input type = 'radio' name = 'downloadLevel' value = 'warnOnly'>
+                        <span class = 'option'>
+
+                        </span>
+                        <span class = 'text'>
+                            Warn Only -> Does not block any extensions, warns against all potentially malicious
+                        </span>
+                    </label>
+                </div>
+
+                <div class = 'theme_selection'>
+                    <label class = 'theme_chosen'>
+                        <input type = 'radio' name = 'theme' value = 'light'>
+                        <span class = 'option'>
+
+                        </span>
+                        <span class = 'text'>
+                            Light Mode
+                        </span>
+                    </label>
+
+                    <label class = 'theme_chosen'>
+                        <input type = 'radio' name = 'theme' value = 'dark'>
+                        <span class = 'option'>
+
+                        </span>
+                        <span class = 'text'>
+                            Dark Mode
+                        </span>
+                    </label>
+                </div>
+
+                <div class = 'start_selection'>
+                    <label class = 'start_chosen'>
+                        <input type = 'radio' name = 'start' value = 'home_page'>
+                        <span class = 'option'>
+
+                        </span>
+                        <span class = 'text'>
+                            Home Page
+                        </span>
+                    </label>
+
+                    <label class = 'start_chosen'>
+                        <input type = 'radio' name = 'start' value = 'dashboard'>
+                        <span class = 'option'>
+
+                        </span>
+                        <span class = 'text'>
+                            Dashboard
+                        </span>
+                    </label>
+                </div>
+            </div>
         </div>
 
-        <div class = 'protection_selection'>
-            <label class = 'protection_level'>
-                <input type = 'radio' name = 'protectionLevel' value = 'strict'>
-                <span class = 'option'>
-
-                </span>
-                <span class = 'text'>
-                    Strict -> Warn: 25+, Auto-Block: 50+
-                </span>
-            </label>
-
-            <label class = 'protection_level'>
-                <input type = 'radio' name = 'protectionLevel' value = 'normal'>
-                <span class = 'option'>
-
-                </span>
-                <span class = 'text'>
-                    Normal -> Warn: 75+, Auto-Block: 100+
-                </span>
-            </label>
-
-            <label class = 'protection_level'>
-                <input type = 'radio' name = 'protectionLevel' value = 'warnOnly'>
-                <span class = 'option'>
-
-                </span>
-                <span class = 'text'>
-                    Warn Only -> Warn: 50+, Auto-Block: Never
-                </span>
-            </label>
+        <div id = 'shroud' hidden>
+            <button id = 'sign_in_from_settings_button'>Sign In</button>
         </div>
-
-        <div class = 'download_selection'>
-            <label class = 'download_level'>
-                <input type = 'radio' name = 'downloadLevel' value = 'strict'>
-                <span class = 'option'>
-
-                </span>
-                <span class = 'text'>
-                    Strict -> Blocks all potentially malicious extensions
-                </span>
-            </label>
-
-            <label class = 'download_level'>
-                <input type = 'radio' name = 'downloadLevel' value = 'normal'>
-                <span class = 'option'>
-
-                </span>
-                <span class = 'text'>
-                    Normal -> Blocks most potentially malicious extensions, warns on others
-                </span>
-            </label>
-
-            <label class = 'download_level'>
-                <input type = 'radio' name = 'downloadLevel' value = 'warnOnly'>
-                <span class = 'option'>
-
-                </span>
-                <span class = 'text'>
-                    Warn Only -> Does not block any extensions, warns against all potentially malicious
-                </span>
-            </label>
-        </div>
-
-        <div class = 'theme_selection'>
-            <label class = 'theme_chosen'>
-                <input type = 'radio' name = 'theme' value = 'light'>
-                <span class = 'option'>
-
-                </span>
-                <span class = 'text'>
-                    Light Mode
-                </span>
-            </label>
-
-            <label class = 'theme_chosen'>
-                <input type = 'radio' name = 'theme' value = 'dark'>
-                <span class = 'option'>
-
-                </span>
-                <span class = 'text'>
-                    Dark Mode
-                </span>
-            </label>
-        </div>
-
-        <div class = 'start_selection'>
-            <label class = 'start_chosen'>
-                <input type = 'radio' name = 'start' value = 'home_page'>
-                <span class = 'option'>
-
-                </span>
-                <span class = 'text'>
-                    Home Page
-                </span>
-            </label>
-
-            <label class = 'start_chosen'>
-                <input type = 'radio' name = 'start' value = 'dashboard'>
-                <span class = 'option'>
-
-                </span>
-                <span class = 'text'>
-                    Dashboard
-                </span>
-            </label>
-        </div>
-
+        
         <script type = 'module' src = '../theme.js'></script>
         <script type = 'module' src = "../firebase/settings.js"></script>
     </body>

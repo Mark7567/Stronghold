@@ -1,8 +1,8 @@
 import { db, auth } from './firebaseInitialiser.js';
 import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js';
-import { setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-auth.js';
+import { setPersistence, browserLocalPersistence, GoogleAuthProvider, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-auth.js';
 
-async function checkUser(user) {
+export async function checkUser(user) {
     const userID = doc(db, 'user', user.uid);
     const userAccount = await getDoc(userID);
 
@@ -42,7 +42,7 @@ async function checkUser(user) {
 
 const authProvider = new GoogleAuthProvider();
 
-async function googleSignIn() {
+export async function googleSignIn() {
     try {
         await setPersistence(auth, browserLocalPersistence);
 
@@ -51,6 +51,8 @@ async function googleSignIn() {
 
         await checkUser(result.user);
         console.log('firestore check complete');
+
+        await window.stronghold.setUser({uid: result.user.uid})
 
         const userID = doc(db, 'user', result.user.uid);
         const userAccount = await getDoc(userID);
@@ -64,24 +66,33 @@ async function googleSignIn() {
         await window.stronghold.setTheme(savedTheme);
         console.log('Theme Set:', savedTheme);
 
-        await window.stronghold.login();
-        console.log('entered browser');
+        return result.user;
 
     } catch(err) {
         console.error('google fail', err);
         alert(err.code || err.message || 'google fail');
+        return null;
+    }
+}
+
+async function initialSignIn() {
+    const user = await googleSignIn();
+
+    if(user) {
+        await window.stronghold.login();
     }
 }
 
 async function guestBrowsing() {
     sessionStorage.setItem('guest_browsing', 'true');
-    await window.stronhold.setTheme('light');
+    await signOut(auth);
+    await window.stronghold.clearUser();
     await window.stronghold.login();
 }
 
 const googleLoginButton = document.getElementById('google_login_button');
 if(googleLoginButton) {
-    googleLoginButton.addEventListener('click', () => googleSignIn());
+    googleLoginButton.addEventListener('click', () => initialSignIn());
 }
 
 const guestLoginButton = document.getElementById('guest_login_button');

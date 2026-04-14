@@ -15,6 +15,7 @@ let userDownloadLevel = 'normal';
 let userTheme = 'light';
 let userPin = null;
 let userStartPage = 'home_page';
+let currentUser = null;
 
 // Layout logic to generate the views
 function layout(view) {
@@ -36,6 +37,8 @@ function createTab() {
             sandbox: true
         }
     });
+
+    newTab.webContents.openDevTools();
 
     const tabStorage = {
         view: newTab,
@@ -306,7 +309,12 @@ function createWindow() {
     });
 }
 
-app.whenReady().then( () => {
+app.whenReady().then(async () => {
+    await session.defaultSession.clearCache();
+    await session.defaultSession.clearStorageData({
+        storages: ['appcache', 'shadercache', 'serviceworkers', 'cachestorage']
+    });
+
     downloadHandler();
     createWindow();
 });
@@ -848,6 +856,12 @@ ipcMain.handle('navigate:settings', async (_e) => {
 })
 
 ipcMain.handle('settings:protection-level', (_e, protectionLevel) => {
+    if(currentUser === null) {
+        return {
+            okay: false
+        };
+    }
+    
     userProtectionLevel = protectionLevel;
     return {
         okay: true
@@ -855,6 +869,12 @@ ipcMain.handle('settings:protection-level', (_e, protectionLevel) => {
 });
 
 ipcMain.handle('settings:download-level', (_e, downloadLevel) => {
+    if(currentUser === null) {
+        return {
+            okay: false
+        };
+    }
+    
     userDownloadLevel = downloadLevel;
     return {
         okay: true
@@ -862,6 +882,12 @@ ipcMain.handle('settings:download-level', (_e, downloadLevel) => {
 });
 
 ipcMain.handle('settings:set-theme', (_e, theme) => {
+    if(currentUser === null) {
+        return {
+            okay: false
+        };
+    }
+    
     userTheme = theme;
     
     if(window && !window.isDestroyed()) {
@@ -884,8 +910,34 @@ ipcMain.handle('settings:get-theme', () => {
 });
 
 ipcMain.handle('settings:start-page', (_e, startPage) => {
+    if(currentUser === null) {
+        return {
+            okay: false
+        };
+    }
+    
     userStartPage = startPage;
     return {
+        okay: true
+    };
+});
+
+ipcMain.handle('user:set-user', (_e, userData) => {
+    currentUser = userData;
+    return {
+        okay: true
+    };
+});
+
+ipcMain.handle('user:get-user', () => {
+    return {
+        user: currentUser
+    };
+});
+
+ipcMain.handle('user:clear-user', () => {
+    currentUser = null;
+    return { 
         okay: true
     };
 });

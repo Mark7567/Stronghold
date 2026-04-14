@@ -1,6 +1,7 @@
 import { db, auth } from './firebaseInitialiser.js';
 import { doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-auth.js';
+import { googleSignIn } from './startup.js';
 
 /* Settings Stuff
     To Do:
@@ -174,10 +175,46 @@ function settingsListeners() {
 
 document.addEventListener('DOMContentLoaded', async () => {
     settingsListeners();
+    showShroud();
+
+    const signInFromSettingsButton = document.getElementById('sign_in_from_settings_button');
+    if(signInFromSettingsButton) {
+        signInFromSettingsButton.addEventListener('click', async () => {
+            await settingsSignIn();
+        });
+    }
 
     onAuthStateChanged(auth, async (user) => {
         if(user) {
             await fetchSettings(user);
+            hideShroud();
+        }
+
+        else {
+            showShroud();
         }
     });
 });
+
+async function settingsSignIn() {
+    const user = await googleSignIn();
+
+    if(user) {
+        await fetchSettings(user);
+        hideShroud();
+    }
+}
+
+function showShroud() {
+    const shroud = document.getElementById('shroud');
+    if(shroud) {
+        shroud.hidden = false;
+    }
+}
+
+function hideShroud() {
+    const shroud = document.getElementById('shroud');
+    if(shroud) {
+        shroud.hidden = true;
+    }
+}

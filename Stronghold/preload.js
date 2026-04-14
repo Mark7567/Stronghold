@@ -20,7 +20,10 @@ contextBridge.exposeInMainWorld('stronghold', {
     setTheme: (theme) => ipcRenderer.invoke('settings:set-theme', theme),
     getTheme: () => ipcRenderer.invoke('settings:get-theme'),
     onThemeChange: (cb) => ipcRenderer.on('change-theme', (_e, theme) => cb(theme)),
-    startPage: (startPage) => ipcRenderer.invoke('settings:start-page', startPage)
+    startPage: (startPage) => ipcRenderer.invoke('settings:start-page', startPage),
+    setUser: (userData) => ipcRenderer.invoke('user:set-user', userData),
+    getUser: () => ipcRenderer.invoke('user:get-user'),
+    clearUser: () => ipcRenderer.invoke('user:clear-user')
 });
 
 ipcRenderer.on('tabs:update', (_e, data) => {
