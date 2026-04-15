@@ -314,7 +314,9 @@ app.whenReady().then(async () => {
     await session.defaultSession.clearStorageData({
         storages: ['appcache', 'shadercache', 'serviceworkers', 'cachestorage']
     });
+});
 
+app.whenReady().then( () => {
     downloadHandler();
     createWindow();
 });

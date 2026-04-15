@@ -73,3 +73,19 @@ body {
     margin-top: 50px;
     height: 40px;
 }
+
+#dashboard_shroud {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+#dashboard_shroud[hidden] {
+    display: none !important;
+}

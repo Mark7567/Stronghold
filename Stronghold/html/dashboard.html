@@ -9,95 +9,104 @@
     </head>
     
     <body>
-        <div id = "column_1" class = "column">
-            <div id = "user_information">
-                <p id = "username"> 
-                    Username 
-                </p>
+        <div class = 'dashboard_page'>
+            <div class = 'dashboard_page_content'>
+                <div id = "column_1" class = "column">
+                    <div id = "user_information">
+                        <p id = "username"> 
+                            Username 
+                        </p>
 
-                <p id = "safe_streak"> 
-                    Safe Day Streak:
-                    <span id = "safe_streak_number" class = "number" placeholder = "0">
-                        0
-                    </span> 
-                </p>
+                        <p id = "safe_streak"> 
+                            Safe Day Streak:
+                            <span id = "safe_streak_number" class = "number" placeholder = "0">
+                                0
+                            </span> 
+                        </p>
 
-                <p id = "level"> 
-                    Level: 
-                    <span id = "level_number" class = "number" placeholder = "0">
-                        0
-                    </span> 
-                </p>
-            </div>
-
-
-            <div id = "quiz">
-                <button id = "daily_quiz">
-                    Daily Quiz
-                </button>
+                        <p id = "level"> 
+                            Level: 
+                            <span id = "level_number" class = "number" placeholder = "0">
+                                0
+                            </span> 
+                        </p>
+                    </div>
 
 
-                <button id = "weekly_quiz">
-                    Weekly Quiz
-                </button>
+                    <div id = "quiz">
+                        <button id = "daily_quiz">
+                            Daily Quiz
+                        </button>
 
 
-                <button id = "challenges">
-                    Challenges
-                </button>
-            </div>
+                        <button id = "weekly_quiz">
+                            Weekly Quiz
+                        </button>
 
-            <div id = "hint">
-                Hint
-            </div>
-        </div>
 
-        <div id = "column_2" class = "column">
-            <div id = "xp_level">
-                <div id = "xp_bar">
+                        <button id = "challenges">
+                            Challenges
+                        </button>
+                    </div>
 
+                    <div id = "hint">
+                        Hint
+                    </div>
+                </div>
+
+                <div id = "column_2" class = "column">
+                    <div id = "xp_level">
+                        <div id = "xp_bar">
+
+                        </div>
+                    </div>
+                    
+                    <p id = "xp_text"> XP </p>
+
+                    <div id = "recent_xp_changes">
+                        Recent XP Changes
+                    </div>
+                </div>
+
+                <div id = "column_3" class = "column">
+                    <div id = "safety_report">
+                        <button id = "sites_blocked">
+                            Sites Blocked: 
+                            <span id = "sites_blocked_number" class = "number" placeholder = "0">
+                                0
+                            </span>
+                        </button>
+
+
+                        <button id = "downloads_blocked">
+                            Downloads Blocked:
+                            <span id = "downloads_blocked_number" class = "number" placeholder = "0">
+                                0
+                            </span> 
+                        </button>
+
+
+                        <button id = "warnings_ignored">
+                            Warnings Ignored:
+                            <span id = "warnings_ignored_number" class = "stats_numbers" placeholder = "0">
+                                0
+                            </span>
+                        </button>
+                    </div>
+
+
+                    <div id = "chart">
+                        Chart
+                    </div>
                 </div>
             </div>
-            
-            <p id = "xp_text"> XP </p>
-
-            <div id = "recent_xp_changes">
-                Recent XP Changes
-            </div>
+        </div>
+        
+        <div id = 'dashboard_shroud' hidden>
+            <button id = 'sign_in_from_dashboard_button'>Sign In</button>
         </div>
 
-        <div id = "column_3" class = "column">
-            <div id = "safety_report">
-                <button id = "sites_blocked">
-                    Sites Blocked: 
-                    <span id = "sites_blocked_number" class = "number" placeholder = "0">
-                        0
-                    </span>
-                </button>
-
-
-                <button id = "downloads_blocked">
-                    Downloads Blocked:
-                    <span id = "downloads_blocked_number" class = "number" placeholder = "0">
-                        0
-                    </span> 
-                </button>
-
-
-                <button id = "warnings_ignored">
-                    Warnings Ignored:
-                    <span id = "warnings_ignored_number" class = "stats_numbers" placeholder = "0">
-                        0
-                    </span>
-                </button>
-            </div>
-
-
-            <div id = "chart">
-                Chart
-            </div>
-        </div>
-        <script src = "../theme.js"></script>
-        <script src = "../firebaseRenderer.js"></script>
+        <script type = 'module' src = "../theme.js"></script>
+        <script type = 'module' src = "../firebase/dashboard.js"></script>
     </body>
 </html>

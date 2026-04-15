@@ -6,9 +6,9 @@ import { googleSignIn } from './startup.js';
 /* Settings Stuff
     To Do:
         - Parental Control PIN (to be used when changing security-based settings)
-        - Add a login button
 */
 
+// Fecthes the user's setttings from firebase using their user ID
 async function fetchSettings(user) {
     if(!user) {
         return;
@@ -26,11 +26,6 @@ async function fetchSettings(user) {
     const downloadLevel = userData.settings?.downloadLevel;
     const theme = userData.settings?.theme;
     const startPage = userData.settings?.startPage;
-
-    console.log('Fetched Protection Level:', protectionLevel);
-    console.log('Fetched Download Level:', downloadLevel);
-    console.log('Fetched Theme:', theme);
-    console.log('Start Page:', startPage);
 
     const selectedProtectionOption = document.querySelector(`input[name='protectionLevel'][value='${protectionLevel}']`);
     const selectedDownloadOption = document.querySelector(`input[name='downloadLevel'][value='${downloadLevel}']`);
@@ -59,6 +54,7 @@ async function fetchSettings(user) {
     await window.stronghold.startPage(startPage);
 }
 
+// Sends any changed settings back to firebase to update them
 async function putSettings(protectionLevel, downloadLevel, theme, startPage) {
     const user = auth.currentUser;
     
@@ -94,6 +90,7 @@ async function putSettings(protectionLevel, downloadLevel, theme, startPage) {
     await window.stronghold.startPage(startPage);
 }
 
+// Sets up listeners for the radios on the settings page
 function settingsListeners() {
     const protectionOptions = document.querySelectorAll('input[name="protectionLevel"]');
     const downloadOptions = document.querySelectorAll('input[name="downloadLevel"]');
@@ -173,6 +170,7 @@ function settingsListeners() {
     });
 }
 
+// Listener for once all scripts have executed
 document.addEventListener('DOMContentLoaded', async () => {
     settingsListeners();
     showShroud();
@@ -196,6 +194,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 });
 
+// Logic for signing in from the settings page
 async function settingsSignIn() {
     const user = await googleSignIn();
 
@@ -205,15 +204,17 @@ async function settingsSignIn() {
     }
 }
 
+// Logic to show the shroud for if a user is browsing as guest
 function showShroud() {
-    const shroud = document.getElementById('shroud');
+    const shroud = document.getElementById('settings_shroud');
     if(shroud) {
         shroud.hidden = false;
     }
 }
 
+// Logic to hide the shroud for if a user is logged in
 function hideShroud() {
-    const shroud = document.getElementById('shroud');
+    const shroud = document.getElementById('settings_shroud');
     if(shroud) {
         shroud.hidden = true;
     }

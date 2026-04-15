@@ -11,11 +11,14 @@ export async function checkUser(user) {
             userID, 
             { 
                 accountCreated: serverTimestamp(),
-                cookiesDeleted: 0,
-                downloadsBlocked: 0,
+                dashboard: {
+                    downloadsBlocked: 0,
+                    safeDayStreak: 0,
+                    sitesBlocked: 0,
+                    warningsIgnored: 0,
+                    xp: 0
+                },
                 lastLogin: serverTimestamp(),
-                level: 0,
-                safeDayStreak: 0,
                 settings: {
                     downloadLevel: 'normal',
                     protectionLevel: 'normal',
@@ -23,10 +26,7 @@ export async function checkUser(user) {
                     theme: 'light',
                     startPage: 'home_page'
                 },
-                sitesBlocked: 0,
-                username: user.displayName,
-                warningsIgnored: 0,
-                xp: 0
+                username: user.displayName
             }
         );
     }
