@@ -698,6 +698,7 @@ async function checkOnLinkClick(view, input) {
             tab.pendingURL = null;
         }
 
+        securityEvents('siteBlocked');
         await view.webContents.loadURL('http://localhost:1000/html/blocked.html');
         return {
             action: 'block',
@@ -710,6 +711,7 @@ async function checkOnLinkClick(view, input) {
             tab.pendingURL = formatURL;
         }
 
+        securityEvents('siteWarned');
         await view.webContents.loadURL('http://localhost:1000/html/warned.html');
         return {
             action: 'warn',
@@ -721,6 +723,8 @@ async function checkOnLinkClick(view, input) {
     if(tab) {
         tab.pendingURL = null;
     }
+
+    securityEvents('siteSafe');
 
     return {
         action: 'accept',
@@ -809,6 +813,8 @@ ipcMain.handle('navigate:continue', async () => {
     view.overrideRiskScore = pendingURL;
 
     try {
+        securityEvents('ignoredWarning');
+
         await view.webContents.loadURL(pendingURL);
         return {
             okay: true
@@ -816,8 +822,6 @@ ipcMain.handle('navigate:continue', async () => {
     }
 
     catch {
-        console.log('Continue Failed :(')
-
         return {
             okay: false
         };
@@ -973,13 +977,17 @@ function downloadHandler() {
 
         if(downloadToBeBlocked(file).action === 'block') {
             item.cancel();
+            securityEvents('downloadBlocked');
             return;
         }
 
         if(downloadToBeBlocked(file).action === 'warn') {
             item.cancel();
+            securityEvents('downloadWarned');
             return;
         }
+
+        securityEvents('downloadSafe');
 
         const saveLocation = app.getPath('downloads');
         const fullSaveLocation = path.join(saveLocation, file);
@@ -1062,4 +1070,10 @@ function getStartPage(startPage) {
     }
 
     return 'http://localhost:1000/html/home.html';
+}
+
+function securityEvents(action) {
+    if (window && !window.isDestroyed()) {
+        window.webContents.send('security-event', action);
+    }
 }

@@ -64,6 +64,20 @@ const validEndings = [
     '.tv'
 ];
 
+// List of XP values for the gamification
+const xpValues = {
+    siteBlocked: 2,
+    siteWarned: 3,
+    siteSafe: 5,
+    ignoredWarning: -10,
+    downloadBlocked: 1,
+    downloadWarned: 2,
+    downloadSafe: 5,
+    quizComplete: 50,
+    challengeComplete: 30,
+    questionAnswered: 10
+}
+
 // Exports to take lists from here into main.js
 module.exports = {
     knownDomains,

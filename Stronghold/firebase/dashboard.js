@@ -22,7 +22,7 @@ async function fetchDashboardStats(user) {
     const warningsIgnored = userData.dashboard?.warningsIgnored;
     const experience = userData.dashboard?.xp;
     const level = Math.floor(experience / 100);
-
+    return userData;
 }
 
 async function putDashboardStats() {
