@@ -84,5 +84,6 @@ module.exports = {
     blockedExtensions,
     phishingWords,
     validEndings,
-    warnedExtensions
+    warnedExtensions,
+    xpValues
 };

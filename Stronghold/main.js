@@ -1,11 +1,13 @@
+// Imports
 const { app, BrowserWindow, BrowserView, ipcMain, session } = require('electron');
 const path = require('node:path');
 const whois = require('whois-json');
 const damerauLevenshtein = require('talisman/metrics/damerau-levenshtein');
-const { knownDomains, blockedExtensions, phishingWords, validEndings, warnedExtensions } = require('./lists');
+const { knownDomains, blockedExtensions, phishingWords, validEndings, warnedExtensions, xpValues } = require('./lists');
 const { parse } = require('tldts');
 const { start } = require('node:repl');
 
+// Sets a variety of arrays and variables useful throughout
 let window;
 let tabs = [];
 let activeTabTracker = -1;
@@ -22,12 +24,13 @@ function layout(view) {
     if(!window || window.isDestroyed() || !view) {
         return;
     }
-        
+    
+    // Sets the window to be at a consistent size so there is no conflicts with tabs being differently sized
     const [width, height] = window.getContentSize();
     view.setBounds({ x: 0, y: 145, width: width, height: height - 145});
 }
 
-// Tab Stuff
+// Function to create a tab when called
 function createTab() {
     const newTab = new BrowserView({
         webPreferences: {
@@ -37,8 +40,6 @@ function createTab() {
             sandbox: true
         }
     });
-
-    newTab.webContents.openDevTools();
 
     const tabStorage = {
         view: newTab,
@@ -172,22 +173,28 @@ function switchTab(tracker) {
     layout(view);
 
     const currentURL = view.webContents.getURL();
+    
+    // Changes the URL bar to empty if user is on the home page
     if(currentURL && currentURL.includes('home.html')) {
         window.webContents.send('change-location', '');
     } 
 
+    // Sets the URL bar to say dashboard if user is on the dashboard page
     else if(currentURL.includes('dashboard.html')) {
         window.webContents.send('change-location', 'stronghold/dashboard');
     }
 
+    // Sets the URL bar to say settings if user is on the settings page
     else if(currentURL.includes('settings.html')) {
         window.webContents.send('change-location', 'stronghold/settings');
     }
 
+    // Sets the URL bar to say blocked if the user has been blocked from accessing a site or download
     else if(currentURL.includes('blocked.html')) {
         window.webContents.send('change-location', 'stronghold/blocked');
     }
     
+    // Sets the URL bar to the URL searched if it is not a built-in Stronghold page
     else {
         window.webContents.send('change-location', currentURL);
     }
@@ -324,18 +331,20 @@ app.whenReady().then( () => {
 // Checks to see if the input is a URL or not
 function isURL(input) {
     const trimmedInput = input.trim().toLowerCase();
-    const removeProtocol = trimmedInput.replace(/^https?:\/\//, "");
-    const baseHost = removeProtocol.split(/[/?#]/)[0];
+    const removeProtocol = trimmedInput.replace(/^https?:\/\//, ""); // Removes the protocol from the URL
+    const baseHost = removeProtocol.split(/[/?#]/)[0]; // Gets the domain name out of the URL
 
-
+    // Is not a URL if it has any whitespace
     if(trimmedInput.includes(" ")) {
         return false;
     }
 
+    // Is not a URL if it contains a dot in the main domain name
     if(!baseHost.includes('.')) {
         return false;
     }
 
+    // Is not a URL if it does not have a valid URL ending
     if(!validEndings.some(ending => baseHost.endsWith(ending))) {
         return false;
     }
@@ -376,7 +385,7 @@ function normaliseURL(input) {
     }
 }
 
-// HTTP Check - RISK SCORE
+// Checks if the URL contains HTTP over HTTPS then increases the risk score if so
 function checkHTTP(input) {
     let score = 0;
     
@@ -387,9 +396,10 @@ function checkHTTP(input) {
             score += 20;
         }
 
-        console.log(score); // Testing - Can Remove
-
-        return score;
+        return {
+            score,
+            reasons: 'Uses HTTP Protocol - Should use HTTPS instead'
+        };
     }
 
     catch {
@@ -397,52 +407,64 @@ function checkHTTP(input) {
     }
 }
 
-// Domain Name Check - RISK SCORE
+// Checks a variety of formatting against the domain name then increases the risk score based on what formatting is identified
 function checkDomainName(input) {
     let score = 0;
+    let reasons = [];
 
     try {
         const formatURL = new URL(input);
-        const domainName = formatURL.hostname.toLowerCase();
-        const ipFormat = /^\d{1,3}(\.\d{1,3}){3}$/;
-        const dotCount = (domainName.match(/\./g)).length;
+        const domainName = formatURL.hostname.toLowerCase(); // Changes the URL to be lower case
+        const ipFormat = /^\d{1,3}(\.\d{1,3}){3}$/; // Sets the format of an IP address for comparison with URL
+        const dotCount = (domainName.match(/\./g)).length; // Sets the format for multiple dots for comparison with URL
 
-        // Contains phishing words?
+
+        // Updates risk score if the URL contains common phishing words
         if(phishingWords.some(word => domainName.includes(word))) {
             score += 10;
+            reasons.push('URL contains common phishing words - This could lead to a scam or details being stolen');
         }
 
-        // Repeated hyphens?
+        // Updates risk score if the URL contains multiple hyphens
         if(domainName.includes('--')) {
             score += 5;
+            reasons.push('URL contains multiple hyphens - This could be attempting impersonation of a legitimate URL');
         }
 
-        // Long domain name?
+        // Updates risk score if the URL is longer than 50 characters
         if(domainName.length > 50) {
             score += 10;
+            reasons.push('URL is longer than 50 characters');
         }
 
-        // Domain is IP address?
+        // Updates risk score if the URL is an IP address 
         if(ipFormat.test(domainName)) {
             score += 30;
+            reasons.push('URL is an IP address - This could be a malicously hosted web domain');
         }
 
-        // Homograph attack? -> Browsers represent unicode as 'xn--'
+        // Updates risk score if there is a suspected homograph attack (browsers represent unicode as 'xn--')
         if(domainName.includes('xn--')) {
             score += 30;
+            reasons.push('URL contains the broswer unicode representation - This could be an attempt at typosquatting');
         }
 
-        // Includes '@' symbol?
+        // Updates risk score if URL contains an @ symbol
         if(input.includes('@')) {
             score += 20;
+            reasons.push('URL contains the @ symbol - This could be an attempt at stealing data');
         }
 
-        // Multiple dots?
+        // Updates risk score if URL contains multiple dots
         if(dotCount > 3) {
             score += 5;
+            reasons.push('URL contains multiple dots - This could be an attempt to hide additional redirects');
         }
 
-        return score;
+        return {
+            score,
+            reasons
+        }
     }
 
     catch {
@@ -450,39 +472,45 @@ function checkDomainName(input) {
     }
 }
 
-// TLS Certificate Validation - RISK SCORE
+// Blocks access to the URL if it does not have a valid TLS certificate but should have one
 app.on('certificate-error', (event, _wc, _url, _e, _c, validCert) => {
     event.preventDefault();
     validCert(false);
 });
 
-// Domain Age Check - RISK SCORE
+// Performs a WhoIs search on the domain to see how old it is, and updates the risk score with younger domains being seen as more risky
 async function checkDomainAge(input) {
     let score = 0;
+    let reasons = [];
     
     try {
         const formatURL = new URL(input);
         const domainName = formatURL.hostname.toLowerCase();
         const whoIsResult = await whois(domainName);
 
-        const createdDate = new Date(whoIsResult.creationDate);
-        const todayDate = new Date();
-        const age = (
-            (todayDate - createdDate) / (1000 * 60 * 60 * 24) 
-        ); 
+        const createdDate = new Date(whoIsResult.creationDate); // Fetches the domain's creation date from WhoIs
+        const todayDate = new Date(); // Fetches the current date
+        const age = ((todayDate - createdDate) / (1000 * 60 * 60 * 24)); // Calculates the age of the domain in days
 
+        // Updates as the highest risk if the domain is under 30 days old (1 month)
         if(age <= 30) {
             score += 20;
+            reasons.push('Domain is younger than 1 month old');
         }
 
+        // Updates as a medium risk if the domain is between 30 and 90 days old (1 month - 3 months)
         else if(age <= 90 && age > 30) {
             score += 10;
+            reasons.push('Domain is older than 1 month but younger than 3 months');
         }
 
+        // Updates as a low risk if the domain is between 90 and 365 days old (3 months - 1 year)
         else if(age <= 365 && age > 90) {
             score += 5;
+            reasons.push('Domain is older than 3 months but younger than 1 year');
         }
 
+        // Does not increase risk if the domain is older than 365 days (1 year)
         return score;
     }
 
@@ -491,55 +519,79 @@ async function checkDomainAge(input) {
     }
 }
 
-// Security Header Check - RISK SCORE
+// Checks which security headers are being used by the site and increases the risk score depending on which are present 
 async function checkSecurityHeader(input) {
     let score = 0;
+    let reasons = [];
     
     try {
-        const fetchedResponse = await fetch(input, {method: 'GET'});
+        const fetchedResponse = await fetch(input, {method: 'GET'}); // Fetches the HTTP headers from the domain
         const responseHeaders = fetchedResponse.headers;
 
+        // Checks for the x-frame-options header
         if(!responseHeaders.has('x-frame-options')) {
             score += 5;
+            reasons.push('Domain does not have the x-frame-options security header');
         }
 
+        // Checks for the x-xss-protection header
         if(!responseHeaders.has('x-xss-protection')) {
             score += 2;
+            reasons.push('Domain does not have the x-xss-protection security header');
         }
 
+        // Checks for the x-content-type-options header
         if(!responseHeaders.has('x-content-type-options')) {
             score += 5;
+            reasons.push('Domain does not have the x-content-type-options security header');
         }
 
+        // Checks for the referrer-policy header
         if(!responseHeaders.has('referrer-policy')) {
             score += 2;
+            reasons.push('Domain does not have the referrer-policy security header');
         }
 
+        // Checks for the strict-transport-security header
         if(!responseHeaders.has('strict-transport-security')) {
             score += 10;
+            reasons.push('Domain does not have the strict-transport-security security header');
         }
 
+        // Checks for the content-security-policy header
         if(!responseHeaders.has('content-security-policy')) {
             score += 10;
+            reasons.push('Domain does not have the content-security-policy security header');
         }
 
+        // Checks for the cross-origin-opener-policy header
         if(!responseHeaders.has('cross-origin-opener-policy')) {
             score += 2;
+            reasons.push('Domain does not have the cross-origin-opener-policy security header');
         }
 
+        // Checks for the cross-origin-embedder-policy header
         if(!responseHeaders.has('cross-origin-embedder-policy')) {
             score += 2;
+            reasons.push('Domain does not have the cross-origin-embedder-policy security header');
         }
 
+        // Checks for the cross-origin-resource-policy header
         if(!responseHeaders.has('cross-origin-resource-policy')) {
             score += 2;
+            reasons.push('Domain does not have the cross-origin-resource-policy security header');
         }
 
+        // Checks for the permissions-policy header
         if(!responseHeaders.has('permissions-policy') && !responseHeaders.has('feature-policy')) {
             score += 2;
+            reasons.push('Domain does not have the permissions-policy security header');
         }
 
-        return score;
+        return {
+            score,
+            reasons
+        };
     }
 
     catch {
@@ -547,9 +599,10 @@ async function checkSecurityHeader(input) {
     }
 }
 
-// Typosquatting Check - RISK SCORE
+// Uses the Damerau-Levenshtein algorithm to determine how close domains are to each other
 function typosquattingCheck(input) {
     let score = 0;
+    let reasons = [];
     
     try {
         const formatURL = new URL(input);
@@ -562,21 +615,25 @@ function typosquattingCheck(input) {
                 return score;
             }
 
+            // Compares how far away from a known domain the user entered domain is
             for(const trustedDomain of knownDomains) {
                 const distance = damerauLevenshtein(host, trustedDomain);
 
+                // Flags the domain as high riks if it is only one score away from known domains
                 if(distance === 1) {
                     score = Math.max(score, 30);
-                    console.log('Distance Check: ', score);
+                    reasons.push('Domain name is very close to another - Likely impersonation');
                 }
 
+                // Flags the domain as medium riks if it is two scores away from known domains
                 else if(distance === 2) {
                     score = Math.max(score, 15);
-                    console.log('Distance Check: ', score);
+                    reasons.push('Domain name is failry close to another - Could be impersonation');
                 }
             }
         }
 
+        // Compares how far away from a known domain the user entered subdomain is
         for(const subDomain of domainSplit) {
             if(subDomain === host) {
                 continue;
@@ -591,17 +648,20 @@ function typosquattingCheck(input) {
 
                 if(distance === 1) {
                     score = Math.max(score, 30);
-                    console.log('Distance Check: ', score);
+                    reasons.push('Subdomain is very close to another - Likely impersonation');
                 }
 
                 else if(distance === 2) {
                     score = Math.max(score, 15);
-                    console.log('Distance Check: ', score);
+                    reasons.push('Subdomain is fairly close to another - Could be impersonation');
                 }
             }
         }
 
-        return score;
+        return {
+            score,
+            reasons
+        };
     }
 
     catch {
