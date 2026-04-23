@@ -16,7 +16,8 @@ export async function checkUser(user) {
                     safeDayStreak: 0,
                     sitesBlocked: 0,
                     warningsIgnored: 0,
-                    xp: 0
+                    xp: 0,
+                    completedQuizzes: 0
                 },
                 lastLogin: serverTimestamp(),
                 settings: {

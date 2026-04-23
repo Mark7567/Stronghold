@@ -388,22 +388,27 @@ function normaliseURL(input) {
 // Checks if the URL contains HTTP over HTTPS then increases the risk score if so
 function checkHTTP(input) {
     let score = 0;
+    let reasons = [];
     
     try {
         const formatURL = new URL(input.trim());
         
         if(formatURL.protocol === 'http:') {
             score += 20;
+            reasons.push('Uses HTTP Protocol - Should use HTTPS instead')
         }
 
         return {
             score,
-            reasons: 'Uses HTTP Protocol - Should use HTTPS instead'
+            reasons
         };
     }
 
     catch {
-        return score;
+        return {
+            score,
+            reasons
+        };
     }
 }
 
@@ -468,7 +473,10 @@ function checkDomainName(input) {
     }
 
     catch {
-        return score;
+        return {
+            score,
+            reasons
+        };
     }
 }
 
@@ -511,11 +519,17 @@ async function checkDomainAge(input) {
         }
 
         // Does not increase risk if the domain is older than 365 days (1 year)
-        return score;
+        return {
+            score,
+            reasons
+        };
     }
 
     catch {
-        return score;
+        return {
+            score,
+            reasons
+        };
     }
 }
 
@@ -595,7 +609,10 @@ async function checkSecurityHeader(input) {
     }
 
     catch {
-        return score;
+        return {
+            score,
+            reasons
+        };
     }
 }
 
@@ -612,7 +629,10 @@ function typosquattingCheck(input) {
 
         if(typeof host === 'string' && host.length > 0) {
             if(knownDomains.includes(host)) {
-                return score;
+                return {
+                    score,
+                    reasons
+                };
             }
 
             // Compares how far away from a known domain the user entered domain is
@@ -665,7 +685,10 @@ function typosquattingCheck(input) {
     }
 
     catch {
-        return score;
+        return {
+            score,
+            reasons
+        };
     }
 }
 
@@ -673,12 +696,27 @@ function typosquattingCheck(input) {
 async function riskScore(input) {
     let score = 0;
     let action = 'allow';
+    let reasons = [];
     
-    score += checkHTTP(input);
-    score += checkDomainName(input);
-    score += await checkDomainAge(input);
-    score += await checkSecurityHeader(input);
-    score += typosquattingCheck(input);
+    const checkHTTPResult = checkHTTP(input);
+    const checkDomainNameResult = checkDomainName(input);
+    const checkDomainAgeResult = await checkDomainAge(input);
+    const checkSecurityHeaderResult = await checkSecurityHeader(input);
+    const typosquattingCheckResult = typosquattingCheck(input);
+
+    score += checkHTTPResult.score;
+    score += checkDomainNameResult.score;
+    score += checkDomainAgeResult.score;
+    score += checkSecurityHeaderResult.score;
+    score += typosquattingCheckResult.score;
+
+    reasons = [
+        ...(checkHTTPResult.reasons),
+        ...(checkDomainNameResult.reasons),
+        ...(checkDomainAgeResult.reasons),
+        ...(checkSecurityHeaderResult.reasons),
+        ...(typosquattingCheckResult.reasons)
+    ]
 
     const {warnScore, blockScore} = getProtectionLevel(userProtectionLevel);
 
@@ -692,7 +730,8 @@ async function riskScore(input) {
 
     return {
         score,
-        action
+        action,
+        reasons
     };
 }
 

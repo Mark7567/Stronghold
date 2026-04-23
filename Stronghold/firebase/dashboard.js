@@ -3,6 +3,19 @@ import { doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.4.0
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-auth.js';
 import { googleSignIn } from './startup.js';
 
+let stats = {
+    downloadsBlocked: 0,                
+    safeDayStreak: 0,
+    sitesBlocked: 0,
+    warningsIgnored: 0,
+    xp: 0,
+    completedQuizzes: 0
+};
+
+function calculateLevel(experience) {
+    return Math.floor(experience / 100);
+}
+
 async function fetchDashboardStats(user) {
     if(!user) {
         return;
@@ -16,13 +29,44 @@ async function fetchDashboardStats(user) {
     }
 
     const userData = userAccount.data();
-    const downloadsBlocked = userData.dashboard?.downloadsBlocked;
-    const safeDayStreak = userData.dashboard?.safeDayStreak;
-    const sitesBlocked = userData.dashboard?.sitesBlocked;
-    const warningsIgnored = userData.dashboard?.warningsIgnored;
-    const experience = userData.dashboard?.xp;
-    const level = Math.floor(experience / 100);
-    return userData;
+    stats = {
+        downloadsBlocked: userData.dashboard?.downloadsBlocked,
+        safeDayStreak: userData.dashboard?.safeDayStreak,
+        sitesBlocked: userData.dashboard?.sitesBlocked,
+        warningsIgnored: userData.dashboard?.warningsIgnored,
+        xp: userData.dashboard?.xp,
+        completedQuizzes: userData.dashboard?.completedQuizzes
+    }
+
+    statsRenderer();
+}
+
+function statsRenderer() {
+    const showDownloadsBlocked = document.getElementById('show_downloads_blocked');
+    const showSafeDayStreak = document.getElementById('show_safe_day_streak');
+    const showSitesBlocked = document.getElementById('show_sites_blocked');
+    const showWarningsIgnored = document.getElementById('show_warnings_ignored');
+    const showLevel = document.getElementById('show_level');
+
+    if(showDownloadsBlocked) {
+        showDownloadsBlocked.textContent = stats.downloadsBlocked;
+    }
+
+    if(showSafeDayStreak) {
+        showSafeDayStreak.textContent = stats.safeDayStreak;
+    }
+
+    if(showSitesBlocked) {
+        showSitesBlocked.textContent = stats.sitesBlocked;
+    }
+
+    if(showWarningsIgnored) {
+        showWarningsIgnored.textContent = stats.warningsIgnored;
+    }
+
+    if(showLevel) {
+        showLevel.textContent = calculateLevel(stats.xp);
+    }
 }
 
 async function putDashboardStats() {
@@ -40,16 +84,50 @@ async function putDashboardStats() {
     }
 
     await updateDoc(userID, {
-        
+        dashboard: stats
     });
 }
 
-function dashboardListeners() {
+function updateStats(action) {
+    if(action === 'siteBlocked') {
+        stats.sitesBlocked += 1;
+    }
 
+    if(action === 'downloadBlocked') {
+        stats.downloadsBlocked += 1;
+    }
+
+    if(action === 'ignoredWarning') {
+        stats.warningsIgnored += 1
+        stats.xp -= 15;
+    }
+
+    if(action === 'siteSafe') {
+        stats.xp += 10;
+    }
+
+    if(action === 'downloadSafe') {
+        stats.xp += 10;
+    }
+}
+
+async function securityEventHandler(action) {
+    const user = auth.currentUser;
+
+    if(!user) {
+        return;
+    }
+
+    updateStats(action);
+    statsRenderer();
+    await putDashboardStats();
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    dashboardListeners();
+    window.stronghold.onSecurityEvent(async (action) => {
+        await securityEventHandler(action);
+    });
+    
     showShroud();
 
     const signInFromDashboardButton = document.getElementById('sign_in_from_dashboard_button');
