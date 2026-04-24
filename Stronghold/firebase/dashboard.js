@@ -29,6 +29,7 @@ async function fetchDashboardStats(user) {
     }
 
     const userData = userAccount.data();
+
     stats = {
         downloadsBlocked: userData.dashboard?.downloadsBlocked,
         safeDayStreak: userData.dashboard?.safeDayStreak,
@@ -88,46 +89,7 @@ async function putDashboardStats() {
     });
 }
 
-function updateStats(action) {
-    if(action === 'siteBlocked') {
-        stats.sitesBlocked += 1;
-    }
-
-    if(action === 'downloadBlocked') {
-        stats.downloadsBlocked += 1;
-    }
-
-    if(action === 'ignoredWarning') {
-        stats.warningsIgnored += 1
-        stats.xp -= 15;
-    }
-
-    if(action === 'siteSafe') {
-        stats.xp += 10;
-    }
-
-    if(action === 'downloadSafe') {
-        stats.xp += 10;
-    }
-}
-
-async function securityEventHandler(action) {
-    const user = auth.currentUser;
-
-    if(!user) {
-        return;
-    }
-
-    updateStats(action);
-    statsRenderer();
-    await putDashboardStats();
-}
-
 document.addEventListener('DOMContentLoaded', async () => {
-    window.stronghold.onSecurityEvent(async (action) => {
-        await securityEventHandler(action);
-    });
-    
     showShroud();
 
     const signInFromDashboardButton = document.getElementById('sign_in_from_dashboard_button');

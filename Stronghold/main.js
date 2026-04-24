@@ -15,7 +15,6 @@ let recentDownloads = [];
 let userProtectionLevel = 'normal';
 let userDownloadLevel = 'normal';
 let userTheme = 'light';
-let userPin = null;
 let userStartPage = 'home_page';
 let currentUser = null;
 
@@ -44,7 +43,8 @@ function createTab() {
     const tabStorage = {
         view: newTab,
         title: 'Home Page',
-        pendingURL: null
+        pendingURL: null,
+        pendingSecurityUpdate: null
     }
 
     newTab.webContents.loadURL(getStartPage(userStartPage));
@@ -394,7 +394,7 @@ function checkHTTP(input) {
         const formatURL = new URL(input.trim());
         
         if(formatURL.protocol === 'http:') {
-            score += 20;
+            score += 100;
             reasons.push('Uses HTTP Protocol - Should use HTTPS instead')
         }
 
@@ -427,31 +427,31 @@ function checkDomainName(input) {
         // Updates risk score if the URL contains common phishing words
         if(phishingWords.some(word => domainName.includes(word))) {
             score += 10;
-            reasons.push('URL contains common phishing words - This could lead to a scam or details being stolen');
+            reasons.push('Domain name contains common phishing words - This could lead to a scam or details being stolen');
         }
 
         // Updates risk score if the URL contains multiple hyphens
         if(domainName.includes('--')) {
             score += 5;
-            reasons.push('URL contains multiple hyphens - This could be attempting impersonation of a legitimate URL');
+            reasons.push('Domain name contains multiple hyphens - This could be attempting impersonation of a legitimate URL');
         }
 
         // Updates risk score if the URL is longer than 50 characters
         if(domainName.length > 50) {
             score += 10;
-            reasons.push('URL is longer than 50 characters');
+            reasons.push('Domain name is longer than 50 characters');
         }
 
         // Updates risk score if the URL is an IP address 
         if(ipFormat.test(domainName)) {
             score += 30;
-            reasons.push('URL is an IP address - This could be a malicously hosted web domain');
+            reasons.push('Domain name is an IP address - This could be a malicously hosted web domain');
         }
 
         // Updates risk score if there is a suspected homograph attack (browsers represent unicode as 'xn--')
         if(domainName.includes('xn--')) {
             score += 30;
-            reasons.push('URL contains the broswer unicode representation - This could be an attempt at typosquatting');
+            reasons.push('Domain name contains the broswer unicode representation - This could be an attempt at typosquatting');
         }
 
         // Updates risk score if URL contains an @ symbol
@@ -795,6 +795,12 @@ async function checkOnLinkClick(view, input) {
     if(toBlock.action === 'block') {
         if(tab) {
             tab.pendingURL = null;
+            tab.pendingSecurityUpdate = {
+                action: 'block',
+                score: toBlock.score,
+                reasons: toBlock.reasons,
+                url: formatURL
+            };
         }
 
         securityEvents('siteBlocked');
@@ -808,6 +814,12 @@ async function checkOnLinkClick(view, input) {
     else if(toBlock.action === 'warn') {
         if(tab) {
             tab.pendingURL = formatURL;
+            tab.pendingSecurityUpdate = {
+                action: 'warn',
+                score: toBlock.score,
+                reasons: toBlock.reasons,
+                url: formatURL
+            };
         }
 
         securityEvents('siteWarned');
@@ -821,6 +833,7 @@ async function checkOnLinkClick(view, input) {
 
     if(tab) {
         tab.pendingURL = null;
+        tab.pendingSecurityUpdate = null;
     }
 
     securityEvents('siteSafe');
@@ -936,10 +949,6 @@ ipcMain.handle('navigate:leave', () => {
 });
 
 // Dashboard Stuff
-function dashboard() {
-
-}
-
 ipcMain.handle('navigate:dashboard', async (_e) => {
     const html = 'http://localhost:1000/html/dashboard.html' 
     await tabs[activeTabTracker].view.webContents.loadURL(html);
@@ -1025,6 +1034,16 @@ ipcMain.handle('settings:start-page', (_e, startPage) => {
     return {
         okay: true
     };
+});
+
+ipcMain.handle('dashboard:get-stats', () => {
+    const tab = tabs[activeTabTracker];
+
+    if(!tab) {
+        return;
+    }
+
+    return tab.pendingSecurityUpdate;
 });
 
 ipcMain.handle('user:set-user', (_e, userData) => {

@@ -24,7 +24,8 @@ contextBridge.exposeInMainWorld('stronghold', {
     setUser: (userData) => ipcRenderer.invoke('user:set-user', userData),
     getUser: () => ipcRenderer.invoke('user:get-user'),
     clearUser: () => ipcRenderer.invoke('user:clear-user'),
-    onSecurityEvent: (cb) => ipcRenderer.on('security-event', (_e, action) => cb(action))
+    onSecurityEvent: (cb) => ipcRenderer.on('security-event', (_e, action) => cb(action)),
+    getStats: () => ipcRenderer.invoke('dashboard:get-stats')
 });
 
 ipcRenderer.on('tabs:update', (_e, data) => {
