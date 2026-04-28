@@ -385,6 +385,26 @@ function normaliseURL(input) {
     }
 }
 
+function getSearchQueryURL(input) {
+    try {
+        const url = new URL(input);
+
+        if(url.hostname.includes('google.') && url.pathname === '/url') {
+            const searchQueryURL = url.searchParams.get('q') || url.searchParams.get('url');
+
+            if(searchQueryURL) {
+                return searchQueryURL;
+            }
+        }
+
+        return input;
+    }
+
+    catch {
+        return input;
+    }
+}
+
 // Checks if the URL contains HTTP over HTTPS then increases the risk score if so
 function checkHTTP(input) {
     let score = 0;
@@ -394,7 +414,7 @@ function checkHTTP(input) {
         const formatURL = new URL(input.trim());
         
         if(formatURL.protocol === 'http:') {
-            score += 100;
+            score += 25;
             reasons.push('Uses HTTP Protocol - Should use HTTPS instead')
         }
 
@@ -718,7 +738,7 @@ async function riskScore(input) {
         ...(typosquattingCheckResult.reasons)
     ]
 
-    const {warnScore, blockScore} = getProtectionLevel(userProtectionLevel);
+    const {warnScore, blockScore} = getProtectionLevel(guestProtectionLevel());
 
     if(score >= blockScore) {
         action = 'block';
@@ -788,7 +808,17 @@ ipcMain.handle('navigate:goto', async (_e, raw) => {
 });
 
 async function checkOnLinkClick(view, input) {
-    const formatURL = addHTTPS(input);
+    const searchQueryInput = getSearchQueryURL(input)
+    const formatURL = addHTTPS(searchQueryInput);
+
+    if(!formatURL) {
+        return {
+            action: 'block',
+            score: 100,
+            url: input
+        };
+    }
+
     const toBlock = await riskScore(formatURL);
     const tab = tabs.find(tab => tab.view === view);
 
@@ -1036,14 +1066,15 @@ ipcMain.handle('settings:start-page', (_e, startPage) => {
     };
 });
 
-ipcMain.handle('dashboard:get-stats', () => {
-    const tab = tabs[activeTabTracker];
+ipcMain.handle('dashboard:get-stats', (event) => {
+    const sender = event.sender;
+    const tab = tabs.find(tab => tab.view.webContents === sender);
 
     if(!tab) {
-        return;
+        return null;
     }
 
-    return tab.pendingSecurityUpdate;
+    return tab.pendingSecurityUpdate || null;
 });
 
 ipcMain.handle('user:set-user', (_e, userData) => {
@@ -1069,7 +1100,7 @@ ipcMain.handle('user:clear-user', () => {
 // Downloads Stuff
 function downloadToBeBlocked(file) {
     const fileName = file.trim().toLowerCase();
-    const {extensionsToBlock, extensionsToWarn} = getDownloadLevel(userDownloadLevel);
+    const {extensionsToBlock, extensionsToWarn} = getDownloadLevel(guestDownloadLevel());
     let action = 'allow';
 
     if(extensionsToBlock.some(extension => fileName.endsWith(extension))) {
@@ -1180,6 +1211,22 @@ function getDownloadLevel(downloadLevel) {
         extensionsToBlock: blockedExtensions,
         extensionsToWarn: warnedExtensions
     };
+}
+
+function guestProtectionLevel() {
+    if(currentUser === null) {
+        return 'strict';
+    }
+
+    return userProtectionLevel;
+}
+
+function guestDownloadLevel() {
+    if(currentUser === null) {
+        return 'strict';
+    }
+
+    return userDownloadLevel;
 }
 
 function getStartPage(startPage) {    

@@ -16,8 +16,11 @@ export async function checkUser(user) {
                     safeDayStreak: 0,
                     sitesBlocked: 0,
                     warningsIgnored: 0,
+                    warningsToday: 0,
                     xp: 0,
-                    completedQuizzes: 0
+                    completedQuizzes: 0,
+                    streakDate: '',
+                    recentChanges: []
                 },
                 lastLogin: serverTimestamp(),
                 settings: {
@@ -48,11 +51,8 @@ export async function googleSignIn() {
         await setPersistence(auth, browserLocalPersistence);
 
         const result = await signInWithPopup(auth, authProvider);
-        console.log('sign in success', result.user);
 
         await checkUser(result.user);
-        console.log('firestore check complete');
-
         await window.stronghold.setUser({uid: result.user.uid})
 
         const userID = doc(db, 'user', result.user.uid);
@@ -62,10 +62,7 @@ export async function googleSignIn() {
         const startPage = userData.settings?.startPage;
 
         await window.stronghold.startPage(startPage);
-        console.log('Start Page Set:', startPage);
-
         await window.stronghold.setTheme(savedTheme);
-        console.log('Theme Set:', savedTheme);
 
         return result.user;
 

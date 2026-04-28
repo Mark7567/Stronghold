@@ -21,9 +21,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         warnedReasons.innerHTML = '';
 
         (stats.reasons).forEach((reason) => {
-            const reasonList = document.createElement('reason_list');
+            const reasonList = document.createElement('li');
             reasonList.textContent = reason;
-            warnedReasons.appendChild(list);
+            warnedReasons.appendChild(reasonList);
         });
     }
 });

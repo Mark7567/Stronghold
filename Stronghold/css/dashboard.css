@@ -3,10 +3,18 @@
 body {
     background-color: var(--backgroundColour);
     color: var(--textColour);
+    font-family: 'Jockey One';
+    margin: 0;
+}
+
+.dashboard_page {
+    padding: 30px;
+}
+
+.dashboard_grid {
     display: grid;
-    grid-template-columns: 2fr 1fr 3fr;
+    grid-template-columns: 1fr, 1fr, 1.4fr;
     gap: 25px;
-    padding: 20px;
 }
 
 .column {
@@ -15,63 +23,89 @@ body {
     gap: 25px;
 }
 
+.info_grid {
+    background-color: burlywood;
+    border: 3px solid black;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.stat_grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+}
+
+.stats_card {
+    border-radius: 14px;
+    padding: 20px;
+    color: white;
+    min-height: 90px;
+}
+
+.stats_card h3 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+}
+
+.stats_card span {
+    font-size: 32px;
+    font-weight: bold;
+}
+
+#show_sites_blocked {
+    color: white;
+}
+
+.stats_card:nth-child(1) {
+    background: #2563eb;
+}
+
+.stats_card:nth-child(2) {
+    background: #dc2626;
+}
+
+.stats_card:nth-child(3) {
+    background: #f59e0b;
+}
+
 #xp_level {
-    width: 50%;
-    height: 15px;
-    background: darkgray;
-    border: 2px solid black;
-    border-color: black;
+    width: 100%;
+    height: 18px;
+    background: #555;
+    border-radius: 20px;
     overflow: hidden;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 #xp_bar {
-    width: 10%;
+    width: 0%;
     height: 100%;
-    background: green;
+    background: #22c55e;
+    transition: width 0.4s ease;
 }
 
 #xp_text {
-    margin-top: 6px;
-    text-align: left;
-    margin-left: 100px;
+    margin-top: 8px;
+    text-align: center;
 }
 
-#user_information {
-    background: blue;
-    margin-top: 50px;
-    height: 100px;
+#quizzes {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
-#quiz {
-    background: green;
-    margin-top: 50px;
-    height: 40px;
+#quizzes button {
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
 }
 
 #recent_xp_changes {
-    background: red;
-    margin-top: 50px;
-    height: 40px;
-}
-
-#hint {
-    background: yellow;
-    margin-top: 50px;
-    height: 40px;
-}
-
-#safety_report {
-    background: pink;
-    margin-top: 50px;
-    height: 40px;
-}
-
-#chart {
-    background: brown;
-    margin-top: 50px;
-    height: 40px;
+    padding-left: 20px;
 }
 
 #dashboard_shroud {
