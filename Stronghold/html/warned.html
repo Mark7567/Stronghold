@@ -7,29 +7,70 @@
             Stronghold Browser
         </title>
 
+        <link rel = "stylesheet" href = "../css/theme.css">
         <link rel = "stylesheet" href = "../css/warned.css">
     </head>
 
     <body>
-        <button type = 'button' id = 'continue_button'> 
-            Continue Anyway
-        </button>
+        <main id = 'warned_page'>
+            <section id = 'warned_box'>
+                <div id = 'status'>
+                    !
+                </div>
 
-        <button type = 'button' id = 'leave_button'>
-            Leave Site
-        </button>
-    
-        <p id = 'warned_url'>
+                <h1 id = 'title'>
+                    Warning
+                </h1>
 
-        </p>
+                <div id = 'underline'>
 
-        <p id = 'warned_score'>
+                </div>
 
-        </p>
+                <p id = 'warned_message'>
+                    This site may be unsafe
+                </p>
 
-        <ul id = 'warned_reasons'>
+                <div class = 'info_box'>
+                    <p class = 'label'>
+                        Dangerous URL / File
+                    </p>
 
-        </ul>
+                    <p id = 'warned_url'>
+
+                    </p>
+                </div>
+
+                <div class = 'info_box'>
+                    <p class = 'label'>
+                        Risk Score
+                    </p>
+
+                    <p id = 'warned_score'>
+                        
+                    </p>
+                </div>
+
+                <div class = 'info_box'>
+                    <p class = 'label'>
+                        Reasons
+                    </p>
+
+                    <p id = 'warned_reasons'>
+                        
+                    </p>
+                </div>
+
+                <div id = 'actions'>
+                    <button id = 'leave_button' class = 'safe_button'>
+                        Go Back
+                    </button>
+
+                    <button id = 'continue_button' class = 'danger_button'>
+                        Continue Anyway
+                    </button>
+                </div>
+            </section>
+        </main>
 
         <script src = "../renderer.js"></script>
         <script type = 'module' src = '../firebase/warned.js'></script>

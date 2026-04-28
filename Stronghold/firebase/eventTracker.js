@@ -5,6 +5,7 @@ import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.4.0/fir
 let stats = [];
 let currentUser = null;
 let ignoredPageWarning = false;
+let ignoredDownloadWarning = false;
 
 onAuthStateChanged(auth, (user) => {
     currentUser = user;
@@ -27,7 +28,9 @@ function updateStats(stats, action) {
         stats.warningsToday += 1;
         xpChange = -15;
         reason = 'Ignored a warning';
+        
         ignoredPageWarning = true;
+        ignoredDownloadWarning = true;
     }
 
     if(action === 'siteSafe') {
@@ -41,6 +44,11 @@ function updateStats(stats, action) {
     }
 
     if(action === 'downloadSafe') {
+        if(ignoredDownloadWarning) {
+            ignoredDownloadWarning = false;
+            return stats;
+        }
+        
         xpChange = 10;
         reason = 'Downloaded a safe file';
     }

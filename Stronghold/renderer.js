@@ -43,6 +43,22 @@ if(leaveButton) {
     leaveButton.addEventListener('click', () => window.stronghold.leave());
 }
 
+const homeSearchButton = document.getElementById('search_button');
+const homeSearchInput = document.getElementById('search_input');
+if(homeSearchButton && homeSearchInput) {
+    homeSearchButton.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const input = homeSearchInput.value.trim();
+
+        if(!input) {
+            return;
+        }
+
+        await window.stronghold.navigate(input);
+    });
+}
+
 const searchAlgorithm = document.getElementById('navigation');
 if(searchAlgorithm) {
     searchAlgorithm.addEventListener('submit', async (e) => {

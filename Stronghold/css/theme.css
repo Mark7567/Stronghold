@@ -12,3 +12,10 @@ body[data-theme = 'dark'] {
     --backgroundColour: #252121;
     --textColour: #FFFFFF;
 }
+
+@font-face {
+    font-family: "Jockey One";
+    src: url("../fonts/Jockey_One/JockeyOne-Regular.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}

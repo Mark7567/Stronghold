@@ -7,14 +7,36 @@
             Stronghold Browser
         </title>
 
+        <link rel = 'stylesheet' href = '../css/theme.css'>
         <link rel = 'stylesheet' href = '../css/startup.css'>
     </head>
 
     <body>
-        <div class = 'logins'>
-            <button id = 'google_login_button'> Sign in with Google </button>
-            <button id = 'guest_login_button'> Browse as a guest </button>
-        </div>
+        <main id = 'startup_page'>
+            <section id = 'startup_box'>
+                <h1 id = 'title'>
+                    STRONGHOLD
+                </h1>
+
+                <div id = 'underline'>
+
+                </div>
+
+                <p id = 'startup_text'>
+                    Sign in to track your stats and start levelling up!
+                </p>
+
+                <div class = 'logins'>
+                    <button id = 'google_login_button' class = 'primary'>
+                        Sign in with Google
+                    </button>
+
+                    <button id = 'guest_login_button' class = 'secondary'>
+                        Browse as a Guest
+                    </button>
+                </div>
+            </section>
+        </main>
     
         <script type = 'module' src = '../firebase/startup.js'></script>
     </body>

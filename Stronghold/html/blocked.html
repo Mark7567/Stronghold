@@ -7,25 +7,57 @@
             Stronghold Browser
         </title>
 
-        <link rel = "stylesheet" href = "../css/warned.css">
+        <link rel = "stylesheet" href = "../css/theme.css">
+        <link rel = "stylesheet" href = "../css/blocked.css">
     </head>
 
     <body>
-        <button type = 'button' id = 'leave_button'>
-            Leave Site
-        </button>
+        <main id = 'blocked_page'>
+            <section id = 'blocked_box'>
+                <div id = 'status'>
+                    !
+                </div>
 
-        <p id = 'blocked_url'>
+                <h1 id = 'title'>
+                    Blocked
+                </h1>
 
-        </p>
+                <div id = 'underline'>
 
-        <p id = 'blocked_score'>
+                </div>
 
-        </p>
+                <div class = 'info_box'>
+                    <p class = 'label'>
+                        Blocked URL / Download
+                    </p>
+                    <p id = 'blocked_url'>
 
-        <ul id = 'blocked_reasons'>
+                    </p>
+                </div>
 
-        </ul>
+                <div class = 'info_box'>
+                    <p class = 'label'>
+                        Risk Score
+                    </p>
+                    <p id = 'blocked_score'>
+
+                    </p>
+                </div>
+
+                <div class = 'info_box'>
+                    <p class = 'label'>
+                        Reasons
+                    </p>
+                    <p id = 'blocked_reasons'>
+
+                    </p>
+                </div>
+
+                <button type = 'button' id = 'leave_button'>
+                    Return to Safe Browsing
+                </button>
+            </section>
+        </main>
     
         <script src = "../renderer.js"></script>
         <script type = 'module' src = '../firebase/blocked.js'></script>

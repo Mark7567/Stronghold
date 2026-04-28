@@ -40,9 +40,9 @@ const blockedExtensions = [
 const warnedExtensions = [
     '.exe',
     '.msi',
-    'dmg',
-    'pkg',
-    'zip'
+    '.dmg',
+    '.pkg',
+    '.zip'
 ];
 
 // List of words commonly used in phishing links / attacks

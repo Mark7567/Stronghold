@@ -17,6 +17,8 @@ let userDownloadLevel = 'normal';
 let userTheme = 'light';
 let userStartPage = 'home_page';
 let currentUser = null;
+let pendingDownload = null;
+let bypassDownload = false;
 
 // Layout logic to generate the views
 function layout(view) {
@@ -944,6 +946,37 @@ ipcMain.handle('navigate:continue', async () => {
     const view = activeTab();
     const tab = tabs[activeTabTracker];
 
+    if(pendingDownload) {
+        const downloadURL = pendingDownload.url;
+        pendingDownload = null;
+
+        try {
+            securityEvents('ignoredWarning');
+            bypassDownload = true;
+            await view.webContents.downloadURL(downloadURL);
+
+            if(view.webContents.navigationHistory.canGoBack()) {
+                view.webContents.navigationHistory.goBack();
+            }
+
+            else {
+                await view.webContents.loadURL('http://localhost:1000/html/home.html');
+            }
+
+            return {
+                okay: true
+            };
+        }
+
+        catch {
+            bypassDownload = false;
+
+            return {
+                okay: false
+            };
+        }
+    }
+
     if(!tab || !tab.pendingURL) {
         return {
             okay: false
@@ -972,9 +1005,14 @@ ipcMain.handle('navigate:continue', async () => {
 
 ipcMain.handle('navigate:leave', () => {
     const view = activeTab();
+    pendingDownload = null;
 
     if(view.webContents.navigationHistory.canGoBack()) { 
         view.webContents.navigationHistory.goBack();
+    }
+
+    else {
+        view.webContents.loadURL('http://localhost:1000/html/home.html');
     }
 });
 
@@ -1121,47 +1159,95 @@ function downloadToBeBlocked(file) {
 }
 
 function downloadHandler() {
-    session.defaultSession.on('will-download', (_e, item, _wC) => {
+    session.defaultSession.on('will-download', async (_e, item, _wC) => {
         const file = item.getFilename();
+        const downloadURL = item.getURL();
+        const downloadCheck = downloadToBeBlocked(file);
 
-        if(downloadToBeBlocked(file).action === 'block') {
-            item.cancel();
-            securityEvents('downloadBlocked');
+        if(bypassDownload) {
+            bypassDownload = false;
+            allowDownload(item, file);
             return;
         }
 
-        if(downloadToBeBlocked(file).action === 'warn') {
+        if(downloadCheck.action === 'block') {
             item.cancel();
+            const tab = tabs[activeTabTracker];
+
+            if(tab) {
+                tab.pendingSecurityUpdate = {
+                    action: 'block',
+                    score: null,
+                    reasons: [`${file} has a potentially malicious extension`],
+                    url: downloadURL
+                };
+            }
+
+            securityEvents('downloadBlocked');
+
+            const view = activeTab();
+            await view.webContents.loadURL('http://localhost:1000/html/blocked.html');
+            
+            return;
+        }
+
+        if(downloadCheck.action === 'warn') {
+            item.cancel();
+
+            pendingDownload = {
+                file: file,
+                url: downloadURL
+            };
+
+            const tab = tabs[activeTabTracker];
+
+            if(tab) {
+                tab.pendingSecurityUpdate = {
+                    action: 'warn',
+                    score: null,
+                    reasons: [`${file} has a potentially malicious extension`],
+                    url: downloadURL
+                };
+            }
+
             securityEvents('downloadWarned');
+
+            const view = activeTab();
+            await view.webContents.loadURL('http://localhost:1000/html/warned.html');
+
             return;
         }
 
         securityEvents('downloadSafe');
-
-        const saveLocation = app.getPath('downloads');
-        const fullSaveLocation = path.join(saveLocation, file);
-        item.setSavePath(fullSaveLocation);
-
-        const downloadsRecord = {
-            file,
-            path: fullSaveLocation,
-            url: item.getURL(),
-            state: 'In Progress',
-            startedAt: Date.now()
-        };
-
-        recentDownloads.unshift(downloadsRecord);
-
-        item.on('updated', (_e, state) => {downloadsRecord.state = state;})
-        item.once('done', (_e, state) => {downloadsRecord.state = state;});
+        allowDownload(item, file);
     });
+}
+
+function allowDownload(item, file) {
+    const saveLocation = app.getPath('downloads');
+    const fullSaveLocation = path.join(saveLocation, file);
+
+    item.setSavePath(fullSaveLocation);
+
+    const downloadsRecord = {
+        file,
+        path: fullSaveLocation,
+        url: item.getURL(),
+        state: 'In Progress',
+        startedAt: Date.now()
+    };
+
+    recentDownloads.unshift(downloadsRecord);
+
+    item.on('updated', (_e, state) => { downloadsRecord.state = state; });
+    item.once('done', (_e, state) => { downloadsRecord.state = state; });
 }
 
 function getProtectionLevel(protectionLevel) {
     if(protectionLevel === 'strict') {
         return {
-            warnScore: 25,
-            blockScore: 50
+            warnScore: 10,
+            blockScore: 75
         };
     }
 

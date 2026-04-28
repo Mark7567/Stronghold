@@ -3,39 +3,54 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Stronghold Browser</title>
+        <title>
+            Stronghold Browser
+        </title>
+
         <link rel = "stylesheet" href="../css/dashboard.css">
         <link rel = "stylesheet" href="../css/theme.css">
     </head>
     
     <body>
-        <div class = 'dashboard_page'>
-            <div class = 'dashboard_page_content'>
-                <div class = 'dashboard_grid'>
+        <main id = 'dashboard_page'>
+            <section id = 'dashboard_box'>
+                <h1 id = 'title'>
+                    Dashboard
+                </h1>
+
+                <div id = 'underline'>
+
+                </div>
+
+                <div id = 'dashboard_grid'>
                     <div class = 'column'>
-                        <div id = 'user_info' class = 'info_grid'>
+                        <div id = 'user_info' class = 'panel'>
                             <h2 id = 'username'>
                                 Username
                             </h2>
 
-                            <p>
-                                Safe Day Streak:
-                                <span id = 'show_safe_day_streak' class = 'number'>
-                                    0
+                            <div class = 'mini_stat'>
+                                <span>
+                                    Safe Day Streak
                                 </span>
-                            </p>
 
-                            <p>
-                                Level:
-                                <span id = 'show_level' class = 'number'>
+                                <strong id = 'show_safe_day_streak'>
                                     0
+                                </strong>
+                            </div> 
+
+                            <div class = 'mini_stat'>
+                                <span>
+                                    Level
                                 </span>
-                            </p>
+
+                                <strong id = 'show_level'>
+                                    0
+                                </strong>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class = 'column'>
-                        <div id = 'xp_info' class = 'info_grid'>
+                        <div id = 'xp_info' class = 'panel'>
                             <h3>
                                 XP Progress
                             </h3>
@@ -50,52 +65,24 @@
                                 0 / 100 XP
                             </p>
                         </div>
-                        
-                        <div id = 'quizzes'>
-                            <button id = 'daily_quiz'>
-                                Daily Quiz
-                            </button>
-
-                            <button id = 'weekly_quiz'>
-                                Weekly Quiz
-                            </button>
-                        </div>
                     </div>
 
                     <div class = 'column'>
-                        <div id = 'stats' class = 'stat_grid'>
-                            <div class = 'stats_card'>
-                                <h3>
-                                    Sites Blocked:
-                                </h3>
+                        <div id = 'quizzes' class = 'panel'>
+                            <h3>
+                                Security Quizzes
+                            </h3>
 
-                                <span id = 'show_sites_blocked'>
-                                    0
-                                </span>
-                            </div>
+                            <button id = 'daily_quiz' class = 'primary'>
+                                Daily Quiz
+                            </button>
 
-                            <div class = 'stats_card'>
-                                <h3>
-                                    Downloads Blocked:
-                                </h3>
-
-                                <span id = 'show_downloads_blocked'>
-                                    0
-                                </span>
-                            </div>
-
-                            <div class = 'stats_card'>
-                                <h3>
-                                    Warnings Ignored:
-                                </h3>
-
-                                <span id = 'show_warnings_ignored'>
-                                    0
-                                </span>
-                            </div>
+                            <button id = 'weekly_quiz' class = 'secondary'>
+                                Weekly Quiz
+                            </button>
                         </div>
 
-                        <div id = 'recent_changes'>
+                        <div id = 'recent_changes' class = 'panel'>
                             <h3>
                                 Recent XP Changes
                             </h3>
@@ -105,7 +92,111 @@
                             </ul>
                         </div>
                     </div>
+
+                    <div class = 'column'>
+                        <div id = 'stats' class = 'stats_grid'>
+                            <button class = 'stats_card_1' id = 'sites_blocked_card'>
+                                <span class = 'stat_label'>
+                                    Sites Blocked
+                                </span>
+
+                                <strong id = 'show_sites_blocked'>
+                                    0
+                                </strong>
+
+                                <small>
+                                    View blocked URLs
+                                </small>
+                            </button>
+
+                            <button class = 'stats_card_2' id = 'downloads_blocked_card'>
+                                <span class = 'stat_label'>
+                                    Downloads Blocked
+                                </span>
+
+                                <strong id = 'show_downloads_blocked'>
+                                    0
+                                </strong>
+
+                                <small>
+                                    View blocked downloads
+                                </small>
+                            </button>
+
+                            <button class = 'stats_card_3' id = 'warnings_ignored_card'>
+                                <span class = 'stat_label'>
+                                    Warnings Ignored
+                                </span>
+
+                                <strong id = 'show_warnings_ignored'>
+                                    0
+                                </strong>
+
+                                <small>
+                                    View warnings ignored
+                                </small>
+                            </button>
+                        </div>
+
+                        <div id = 'charts' class = 'panel'>
+                            <h3>
+                                Browsing Charts
+                            </h3>
+
+                            <div class = 'chart_row'>
+                                <span>
+                                    Sites Blocked
+                                </span>
+
+                                <div class = 'chart_track'>
+                                    <div id = 'sites_blocked_bar' class = 'chart_bar'>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class = 'chart_row'>
+                                <span>
+                                    Downloads Blocked
+                                </span>
+
+                                <div class = 'chart_track'>
+                                    <div id = 'downloads_blocked_bar' class = 'chart_bar'>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class = 'chart_row'>
+                                <span>
+                                    Warnings Ignored
+                                </span>
+
+                                <div class = 'chart_track'>
+                                    <div id = 'warnings_ignored_bar' class = 'chart_bar'>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </section>
+        </main>
+
+        <div id = 'dashboard_popup' hidden>
+            <div id = 'popup'>
+                <h2 id = 'popup_title'>
+                    Details
+                </h2>
+
+                <div id = 'popup_content'>
+
+                </div>
+
+                <button id = 'popup_close_button'>
+                    Close
+                </button>
             </div>
         </div>
         

@@ -1,64 +1,96 @@
-/* CSS for the home page */
+/* CSS for home page */
 
-body {
-    background-color: var(--backgroundColour);
-    color: var(--textColour);
+html, body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a, #020617);
+    color: white;
+    font-family: 'Jockey One';
 }
 
-@font-face {
-    font-family: "Jockey One";
-    src: url("../fonts/Jockey_One/JockeyOne-Regular.ttf") format("truetype");
-    font-weight: normal;
-    font-style: normal;
+#home_page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    box-sizing: border-box;
+}
+
+#title_card {
+    width: min(850px, 100%);
+    padding: 48px;
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 24px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    text-align: center;
 }
 
 #title {
-    font-family: "Jockey One";
-    font-size: 80px;
-    font-weight: bold;
-    text-align: center;
-    margin-top: 200px;
+    margin: 0;
+    font-size: 86px;
+    letter-spacing: 4px;
+    line-height: 1;
+    color: #e5e7eb;
 }
 
 #underline {
-    width: 550px;
-    height: 20px;
-    background: #000000;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: -75px;
+    width: 420px;
+    height: 10px;
+    background: linear-gradient(90deg, #3b82f6, #22c55e);
+    border-radius: 999px;
+    margin: 20px auto 45px auto;
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.6);
 }
 
-#search_word {
-    font-family: "Jockey One";
-    font-weight: bold;
-    padding: 15px;
-    font-size: 30px;
+#navigation {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
 }
 
 #search_input {
-    font-family: "Jockey One";
-    height: 55px;
-    font-size: 30px;
-    width: 700px;
-    margin-top: auto;
-    font-weight: normal;
+    flex: 1;
+    height: 52px;
+    border: 1px solid #374151;
+    border-radius: 999px;
+    padding: 0 20px;
+    background: #030712;
+    color: white;
+    outline: none;
+    font-family: 'Jockey One';
+    font-size: 16px;
+    box-sizing: border-box;
 }
 
-::placeholder {
-    font-weight: bold;
-    font-style: italic;
-    color: #A29A9A;
-    opacity: 50%;
+#search_input::placeholder {
+    color: #9ca3af;
 }
 
-#search_box {
-    background: #FFFFFF;
-    display: flex;
-    align-items: center;
-    margin-left: auto;
-    margin-right: auto;
-    height: 60px;
-    width: 800px;
-    margin-top: 50px;
+#search_input:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+#search_button {
+    height: 52px;
+    padding: 0 28px;
+    border: none;
+    border-radius: 999px;
+    background: #2563eb;
+    color: white;
+    font-family: 'Jockey One', Arial, sans-serif;
+    font-size: 20px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+#search_button:hover {
+    background: #3b82f6;
+}
+
+#search_button:active {
+    transform: scale(0.96);
 }

@@ -4,136 +4,150 @@ html, body {
     background-color: var(--backgroundColour) !important;
     color: var(--textColour);
     margin: 0;
-}
-
-#back_button img {
-    width: 30px;
-    height: 30px;
-}
-
-#forward_button img {
-    width: 30px;
-    height: 30px;
-}
-
-#reload_button img {
-    width: 30px;
-    height: 30px;
-}
-
-#dashboard_button img {
-    width: 30px;
-    height: 30px;
-}
-
-#bookmarks_button img {
-    width: 30px;
-    height: 30px;
-}
-
-#settings_button img { 
-    width: 30px;
-    height: 30px;
-}
-
-#home_button img {
-    width: 30px;
-    height: 30px;
-    gap: 8px;
-}
-
-#downloads_button img { 
-    width: 30px;
-    height: 30px;
-}
-
-#new_tab_button img {
-    width: 30px;
-    height: 30px;
-}
-
-#navigation {
-    display: flex;
-    justify-content: center;
-    flex-grow: 1;
-}
-
-#url {
-    width: 100%;
-    height: 20px;
-}
-
-#row_1 {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-#tabs_holder {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex: 1;
-    min-width: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-}
-
-#new_tab_button {
-    margin-left: 8px;
+    overflow: hidden;
+    font-family: 'Jockey One';
 }
 
 .bar {
     display: flex;
     align-items: center;
-    padding: 6px 10px;
+    padding: 8px 12px;
     gap: 8px;
-    background-color: var(--backgroundColour) !important;
+    background: #111827;
+    border-bottom: 1px solid #263244;
+    box-sizing: border-box;
+}
+
+#row_1, #row_2 {
+    height: 64px;
+}
+
+button {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 10px;
+    background: #1f2937;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+button:hover {
+    background: #374151;
+}
+
+button:active {
+    transform: scale(0.96);
+}
+
+button img {
+    width: 22px;
+    height: 22px;
+    filter: brightness(0) invert(1);
+}
+
+#tabs_holder {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
 }
 
 .tab {
     display: flex;
     align-items: center;
     flex: 1 1 120px;
-    min-width: 60px;
+    min-width: 80px;
     max-width: 180px;
-    height: 40px;
-    padding: 0 6px;
-    background: green;
-    border: 1px solid black;
-    box-sizing: border-box;
+    height: 38px;
+    padding: 0 8px 0 12px;
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 10px;
     overflow: hidden;
     cursor: pointer;
-    white-space: nowrap;
+    color: #d1d5db;
+}
+
+.tab:hover {
+    background: #2b3648;
 }
 
 .tab.active_tab {
-    background: red !important;
+    background: #2563eb;
+    border-color: #3b82f6;
+    color: white;
 }
 
 .tab_name {
-    display: block;
-    flex: 1 1 auto;
+    flex: 1;
     min-width: 0;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    font-size: 13px;
 }
 
 .close_tab_button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: 0 0 18px;
-    width: 14px;
-    height: 14px;
-    min-width: 14px;
-    min-height:14px;
-    margin-left: 4px;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    margin-left: 6px;
     padding: 0;
-    border: 1px solid black;
-    background: white;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 14px;
     line-height: 1;
+}
+
+.close_tab_button:hover {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+#navigation {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+}
+
+#url {
+    width: 100%;
+    height: 38px;
+    border: 1px solid #374151;
+    border-radius: 999px;
+    padding: 0 18px;
+    background: #030712;
+    color: white;
+    outline: none;
+    font-size: 14px;
+    box-sizing: border-box;
+    font-family: 'Jockey One';
+}
+
+#url::placeholder {
+    color: #9ca3af;
+}
+
+#url:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+#new_tab_button {
+    margin-left: 4px;
+}
+
+#dashboard_button {
+    margin-left: auto;
 }

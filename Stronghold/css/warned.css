@@ -1,0 +1,153 @@
+/* CSS for the warning page */
+
+html, body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a, #020617);
+    color: white;
+    font-family: 'Jockey One';
+}
+
+#warned_page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    box-sizing: border-box;
+}
+
+#warned_box {
+    width: min(780px, 100%);
+    padding: 42px;
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 24px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    text-align: center;
+}
+
+#status {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 18px auto;
+    border-radius: 50%;
+    background: #f59e0b;
+    color: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Jockey One';
+    font-size: 38px;
+    font-weight: bold;
+    box-shadow: 0 0 18px rgba(245, 158, 11, 0.6);
+}
+
+#title {
+    margin: 0;
+    font-size: 72px;
+    letter-spacing: 3px;
+    line-height: 1;
+    color: #f3f4f6;
+}
+
+#underline {
+    width: 300px;
+    height: 10px;
+    background: linear-gradient(90deg, #f59e0b, #f97316);
+    border-radius: 999px;
+    margin: 18px auto 28px auto;
+}
+
+#warned_message {
+    margin: 0 auto 28px auto;
+    max-width: 560px;
+    color: #d1d5db;
+    font-family: 'Jockey One';
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.info_box {
+    margin-top: 14px;
+    padding: 16px 18px;
+    background: #111827;
+    border: 1px solid #374151;
+    border-radius: 16px;
+    text-align: left;
+}
+
+.label {
+    margin: 0 0 8px 0;
+    color: #9ca3af;
+    font-family: 'Jockey One';
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+#warned_url,
+#warned_score {
+    margin: 0;
+    color: #f9fafb;
+    font-family: 'Jockey One';
+    font-size: 15px;
+    overflow-wrap: anywhere;
+}
+
+#warned_reasons {
+    margin: 0;
+    padding-left: 22px;
+    color: #f9fafb;
+    font-family: 'Jockey One';
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+#warned_reasons li {
+    margin-bottom: 6px;
+}
+
+#actions {
+    margin-top: 28px;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+}
+
+.safe_button {
+    height: 52px;
+    min-width: 200px;
+    padding: 0 24px;
+    border-radius: 999px;
+    border: 1px solid #374151;
+    background: #111827;
+    color: #e5e7eb;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.safe_button:hover {
+    background: #374151;
+}
+
+.danger_button {
+    height: 52px;
+    min-width: 200px;
+    padding: 0 24px;
+    border: none;
+    border-radius: 999px;
+    background: #f59e0b;
+    color: black;
+    font-size: 20px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.danger_button:hover {
+    background: #fbbf24;
+}
+
+.danger_button:active {
+    transform: scale(0.96);
+}

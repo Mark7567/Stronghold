@@ -12,125 +12,155 @@
     </head>
 
     <body>
-        <div class = 'settings_page'>
-            <div class = 'settings_page_content'>
-                <h1 id = "title">
+        <main id = 'settings_page'>
+            <section id = 'settings_box'>
+                <h1 id = 'title'>
                     Settings
                 </h1>
 
-                <div id = "underline">
+                <div id = 'underline'>
 
                 </div>
 
-                <div class = 'protection_selection'>
-                    <label class = 'protection_level'>
+                <div class = 'settings_content'>
+                    <h2>
+                        Protection Level
+                    </h2>
+
+                    <label class = 'options_card'>
                         <input type = 'radio' name = 'protectionLevel' value = 'strict'>
-                        <span class = 'option'>
-
-                        </span>
-                        <span class = 'text'>
-                            Strict -> Warn: 25+, Auto-Block: 50+
-                        </span>
+                        <div>
+                            <strong>
+                                Strict
+                            </strong>
+                            
+                            <p>
+                                Warn: 50+ // Block: 75+
+                            </p>
+                        </div>
                     </label>
 
-                    <label class = 'protection_level'>
+                    <label class = 'options_card'>
                         <input type = 'radio' name = 'protectionLevel' value = 'normal'>
-                        <span class = 'option'>
-
-                        </span>
-                        <span class = 'text'>
-                            Normal -> Warn: 75+, Auto-Block: 100+
-                        </span>
+                        <div>
+                            <strong>
+                                Normal
+                            </strong>
+                            
+                            <p>
+                                Warn: 75+ // Block: 100+
+                            </p>
+                        </div>
                     </label>
 
-                    <label class = 'protection_level'>
+                    <label class = 'options_card'>
                         <input type = 'radio' name = 'protectionLevel' value = 'warnOnly'>
-                        <span class = 'option'>
-
-                        </span>
-                        <span class = 'text'>
-                            Warn Only -> Warn: 50+, Auto-Block: Never
-                        </span>
+                        <div>
+                            <strong>
+                                Warn Only
+                            </strong>
+                            
+                            <p>
+                                Warn: 50+ // Block: Never
+                            </p>
+                        </div>
                     </label>
                 </div>
 
-                <div class = 'download_selection'>
-                    <label class = 'download_level'>
+                <div class = 'settings_content'>
+                    <h2>
+                        Download Protection Level
+                    </h2>
+
+                    <label class = 'options_card'>
                         <input type = 'radio' name = 'downloadLevel' value = 'strict'>
-                        <span class = 'option'>
-
-                        </span>
-                        <span class = 'text'>
-                            Strict -> Blocks all potentially malicious extensions
-                        </span>
+                        <div>
+                            <strong>
+                                Strict
+                            </strong>
+                            
+                            <p>
+                                Blocks all risky extensions
+                            </p>
+                        </div>
                     </label>
 
-                    <label class = 'download_level'>
+                    <label class = 'options_card'>
                         <input type = 'radio' name = 'downloadLevel' value = 'normal'>
-                        <span class = 'option'>
-
-                        </span>
-                        <span class = 'text'>
-                            Normal -> Blocks most potentially malicious extensions, warns on others
-                        </span>
+                        <div>
+                            <strong>
+                                Normal
+                            </strong>
+                            
+                            <p>
+                                Blocks most risky extensions, Warns against others
+                            </p>
+                        </div>
                     </label>
 
-                    <label class = 'download_level'>
+                    <label class = 'options_card'>
                         <input type = 'radio' name = 'downloadLevel' value = 'warnOnly'>
-                        <span class = 'option'>
-
-                        </span>
-                        <span class = 'text'>
-                            Warn Only -> Does not block any extensions, warns against all potentially malicious
-                        </span>
+                        <div>
+                            <strong>
+                                Warn Only
+                            </strong>
+                            
+                            <p>
+                                Warns against all risky extensions, Never blocks
+                            </p>
+                        </div>
                     </label>
                 </div>
 
-                <div class = 'theme_selection'>
-                    <label class = 'theme_chosen'>
-                        <input type = 'radio' name = 'theme' value = 'light'>
-                        <span class = 'option'>
+                <div id = 'settings_content'>
+                    <h2>
+                        Theme
+                    </h2>
 
-                        </span>
-                        <span class = 'text'>
-                            Light Mode
-                        </span>
-                    </label>
-
-                    <label class = 'theme_chosen'>
+                    <label class = 'options_card'>
                         <input type = 'radio' name = 'theme' value = 'dark'>
-                        <span class = 'option'>
+                        <div>
+                            <strong>
+                                Dark Mode
+                            </strong>
+                        </div>
+                    </label>
 
-                        </span>
-                        <span class = 'text'>
-                            Dark Mode
-                        </span>
+                    <label class = 'options_card'>
+                        <input type = 'radio' name = 'theme' value = 'light'>
+                        <div>
+                            <strong>
+                                Light Mode
+                            </strong>
+                        </div>
                     </label>
                 </div>
 
-                <div class = 'start_selection'>
-                    <label class = 'start_chosen'>
+                <div id = 'settings_content'>
+                    <h2>
+                        Start Page
+                    </h2>
+
+                    <label class = 'options_card'>
                         <input type = 'radio' name = 'start' value = 'home_page'>
-                        <span class = 'option'>
-
-                        </span>
-                        <span class = 'text'>
-                            Home Page
-                        </span>
+                        <div>
+                            <strong>
+                                Home Page
+                            </strong>
+                        </div>
                     </label>
 
-                    <label class = 'start_chosen'>
+                    <label class = 'options_card'>
                         <input type = 'radio' name = 'start' value = 'dashboard'>
-                        <span class = 'option'>
-
-                        </span>
-                        <span class = 'text'>
-                            Dashboard
-                        </span>
+                        <div>
+                            <strong>
+                                Dashboard
+                            </strong>
+                        </div>
                     </label>
                 </div>
-            </div>
-        </div>
+            </section>
+        </main>
 
         <div id = 'settings_shroud' hidden>
             <button id = 'sign_in_from_settings_button'>Sign In</button>

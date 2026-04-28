@@ -1,42 +1,98 @@
-/* CSS for the settings */
+/* CSS for settings page */
 
-body {
-    background: var(--backgroundColour);
-    color: var(--textColour);
+html, body {
     margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a, #020617);
+    color: white;
+    font-family: 'Jockey One';
 }
 
-@font-face {
-    font-family: "Jockey One";
-    src: url("../fonts/Jockey_One/JockeyOne-Regular.ttf") format("truetype");
-    font-weight: normal;
-    font-style: normal;
+#settings_page {
+    display: flex;
+    justify-content: center;
+    padding: 40px;
+}
+
+#settings_box {
+    width: min(900px, 100%);
+    padding: 42px;
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 24px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
 }
 
 #title {
-    font-family: "Jockey One";
-    font-size: 80px;
-    font-weight: bold;
     text-align: center;
-    margin-top: 200px;
+    font-size: 72px;
+    margin: 0;
+    color: #e5e7eb;
 }
 
-.settings_page {
-    min-height: 100vh;
+#underline {
+    width: 300px;
+    height: 10px;
+    background: linear-gradient(90deg, #3b82f6, #22c55e);
+    margin: 16px auto 32px auto;
+    border-radius: 999px;
 }
 
-#settings_shroud {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
+.settings_content {
+    margin-bottom: 28px;
+}
+
+.settings_content h2 {
+    margin-bottom: 12px;
+    font-size: 24px;
+    color: #f9fafb;
+}
+
+.options_card {
     display: flex;
     align-items: center;
-    justify-content: center;
-    background-color: rgba(0, 0, 0, 0.5) !important;
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
+    gap: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+
+    background: #111827;
+    border: 1px solid #374151;
+    border-radius: 14px;
+
+    cursor: pointer;
+    transition: background 0.15s ease, border 0.15s ease;
 }
 
-#settings_shroud[hidden] {
-    display: none !important;
+.options_card:hover {
+    background: #374151;
+}
+
+.options_card input {
+    display: none;
+}
+
+.options_card::before {
+    content: "";
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid #6b7280;
+    flex-shrink: 0;
+}
+
+.options_card:has(input:checked) {
+    border-color: #3b82f6;
+    background: #1e3a8a;
+}
+
+.options_card:has(input:checked)::before {
+    background: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.options_card p {
+    margin: 4px 0 0 0;
+    font-family: 'Jockey One';
+    font-size: 14px;
+    color: #d1d5db;
 }
