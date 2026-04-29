@@ -835,8 +835,13 @@ async function checkOnLinkClick(view, input) {
             };
         }
 
-        securityEvents('siteBlocked');
+        securityEvents('siteBlocked', {
+            url: formatURL,
+            score: toBlock.score
+        });
+
         await view.webContents.loadURL('http://localhost:1000/html/blocked.html');
+        
         return {
             action: 'block',
             score: toBlock.score
@@ -854,8 +859,13 @@ async function checkOnLinkClick(view, input) {
             };
         }
 
-        securityEvents('siteWarned');
+        securityEvents('siteWarned', {
+            url: formatURL,
+            score: toBlock.score
+        });
+        
         await view.webContents.loadURL('http://localhost:1000/html/warned.html');
+        
         return {
             action: 'warn',
             score: toBlock.score,
@@ -868,7 +878,9 @@ async function checkOnLinkClick(view, input) {
         tab.pendingSecurityUpdate = null;
     }
 
-    securityEvents('siteSafe');
+    securityEvents('siteSafe', {
+        url: formatURL
+    });
 
     return {
         action: 'accept',
@@ -951,7 +963,10 @@ ipcMain.handle('navigate:continue', async () => {
         pendingDownload = null;
 
         try {
-            securityEvents('ignoredWarning');
+            securityEvents('ignoredWarning', {
+                url: downloadURL
+            });
+
             bypassDownload = true;
             await view.webContents.downloadURL(downloadURL);
 
@@ -988,7 +1003,9 @@ ipcMain.handle('navigate:continue', async () => {
     view.overrideRiskScore = pendingURL;
 
     try {
-        securityEvents('ignoredWarning');
+        securityEvents('ignoredWarning', {
+            url: pendingURL
+        });
 
         await view.webContents.loadURL(pendingURL);
         return {
@@ -1183,7 +1200,10 @@ function downloadHandler() {
                 };
             }
 
-            securityEvents('downloadBlocked');
+            securityEvents('downloadBlocked', {
+                file: file,
+                url: item.getURL()
+            });
 
             const view = activeTab();
             await view.webContents.loadURL('http://localhost:1000/html/blocked.html');
@@ -1210,7 +1230,10 @@ function downloadHandler() {
                 };
             }
 
-            securityEvents('downloadWarned');
+            securityEvents('downloadWarned', {
+                file: file,
+                url: item.getURL()
+            });
 
             const view = activeTab();
             await view.webContents.loadURL('http://localhost:1000/html/warned.html');
@@ -1218,7 +1241,11 @@ function downloadHandler() {
             return;
         }
 
-        securityEvents('downloadSafe');
+        securityEvents('downloadSafe', {
+            file: file,
+            url: item.getURL()
+        });
+        
         allowDownload(item, file);
     });
 }
@@ -1246,7 +1273,7 @@ function allowDownload(item, file) {
 function getProtectionLevel(protectionLevel) {
     if(protectionLevel === 'strict') {
         return {
-            warnScore: 10,
+            warnScore: 50,
             blockScore: 75
         };
     }
@@ -1323,8 +1350,8 @@ function getStartPage(startPage) {
     return 'http://localhost:1000/html/home.html';
 }
 
-function securityEvents(action) {
+function securityEvents(action, data = {}) {
     if (window && !window.isDestroyed()) {
-        window.webContents.send('security-event', action);
+        window.webContents.send('security-event', { action, data });
     }
 }

@@ -1,46 +1,64 @@
 const backButton = document.getElementById('back_button');
 if(backButton) {
-    backButton.addEventListener('click', () => window.stronghold.back());
+    backButton.addEventListener('click', () => {
+        window.stronghold.back()
+    });
 }
 
 const forwardButton = document.getElementById('forward_button');
 if(forwardButton) {
-    forwardButton.addEventListener('click', () => window.stronghold.forward());
+    forwardButton.addEventListener('click', () => {
+        window.stronghold.forward()}
+    );
 }
 
 const reloadButton = document.getElementById('reload_button');
 if(reloadButton) {
-    reloadButton.addEventListener('click', () => window.stronghold.reload());
+    reloadButton.addEventListener('click', () => {
+        window.stronghold.reload()
+    });
 }
 
 const homeButton = document.getElementById('home_button');
 if(homeButton) {
-    homeButton.addEventListener('click', () => window.stronghold.home());
+    homeButton.addEventListener('click', () => {
+        window.stronghold.home()
+    });
 }
 
 const dashboardButton = document.getElementById('dashboard_button');
 if(dashboardButton) {
-    dashboardButton.addEventListener('click', () => window.stronghold.dashboard());
+    dashboardButton.addEventListener('click', () => {
+        window.stronghold.dashboard()
+    });
 }
 
 const newTabButton = document.getElementById('new_tab_button');
 if(newTabButton) {
-    newTabButton.addEventListener('click', () => window.stronghold.newTab());
+    newTabButton.addEventListener('click', () => {
+        window.stronghold.newTab()
+    });
 }
 
 const settingsButton = document.getElementById('settings_button');
 if(settingsButton) {
-    settingsButton.addEventListener('click', () => window.stronghold.settings());
+    settingsButton.addEventListener('click', () => {
+        window.stronghold.settings()
+    });
 }
 
 const continueButton = document.getElementById('continue_button');
 if(continueButton) {
-    continueButton.addEventListener('click', () => window.stronghold.continue());
+    continueButton.addEventListener('click', () => {
+        window.stronghold.continue()
+    });
 }
 
 const leaveButton = document.getElementById('leave_button');
 if(leaveButton) {
-    leaveButton.addEventListener('click', () => window.stronghold.leave());
+    leaveButton.addEventListener('click', () => { 
+        window.stronghold.leave()
+    });
 }
 
 const homeSearchButton = document.getElementById('search_button');
@@ -100,7 +118,9 @@ function showTabs(tabs, _aT) {
         closeTabButton.textContent = 'X';
 
         if(tab) {
-            tab.addEventListener('click', () => {window.stronghold.switchTab(tabData.index);});
+            tab.addEventListener('click', () => {
+                window.stronghold.switchTab(tabData.index);
+            });
         }
 
         if(closeTabButton) {

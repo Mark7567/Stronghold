@@ -1,5 +1,5 @@
 import { db, auth } from './firebaseInitialiser.js';
-import { doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js';
+import { doc, getDoc, updateDoc, Timestamp } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-auth.js';
 import { googleSignIn } from './startup.js';
 
@@ -43,6 +43,9 @@ async function fetchDashboardStats(user) {
         xp: updatedUserData.dashboard?.xp,
         completedQuizzes: updatedUserData.dashboard?.completedQuizzes,
         streakDate: updatedUserData.dashboard?.streakDate,
+        blockedSites: updatedUserData.dashboard?.blockedSites ?? [],
+        blockedDownloads: updatedUserData.dashboard?.blockedDownloads ?? [],
+        reasonsIgnored: updatedUserData.dashboard?.reasonsIgnored ?? [],
         recentChanges: updatedUserData.dashboard?.recentChanges ?? []
     }
 
@@ -99,30 +102,73 @@ function statsRenderer(userData) {
 document.addEventListener('DOMContentLoaded', async () => {
     showShroud();
 
-    const signInFromDashboardButton = document.getElementById('sign_in_from_dashboard_button');
-        if(signInFromDashboardButton) {
-            signInFromDashboardButton.addEventListener('click', async () => {
-                await dashboardSignIn();
-            });
+    const signInFromDashboardButton = document.getElementById('sign_in_from_dashboard_button'); 
+    if(signInFromDashboardButton) {
+        signInFromDashboardButton.addEventListener('click', async () => {
+            await dashboardSignIn();
+        });
+    }
+
+    const sitesBlockedCard = document.getElementById('sites_blocked_card');
+    if(sitesBlockedCard) {
+        sitesBlockedCard.addEventListener('click', () => {
+            showStats('Blocked Sites', stats.blockedSites);
+        });
+    }
+
+    const downloadsBlockedCard = document.getElementById('downloads_blocked_card');
+    if(downloadsBlockedCard) {
+        downloadsBlockedCard.addEventListener('click', () => {
+            showStats('Blocked Downloads', stats.blockedDownloads);
+        });
+    }
+    
+    const warningsIgnoredCard = document.getElementById('warnings_ignored_card');
+    if(warningsIgnoredCard) {
+        warningsIgnoredCard.addEventListener('click', () => {
+            showStats('Warnings Ignored', stats.reasonsIgnored);
+        });
+    }
+
+    const closePopupButton = document.getElementById('popup_close_button');
+    const statsPopup = document.getElementById('dashboard_popup');
+    if(closePopupButton) {
+        closePopupButton.addEventListener('click', () => {
+            statsPopup.hidden = true;
+        });
+    }
+
+    const dailyQuizButton = document.getElementById('daily_quiz_button');
+    if(dailyQuizButton) {
+        dailyQuizButton.addEventListener('click', async () => {
+            startQuiz('daily');
+        });
+    }
+
+    const weeklyQuizButton = document.getElementById('weekly_quiz_button');
+    if(weeklyQuizButton) {
+        weeklyQuizButton.addEventListener('click', async () => {
+            startQuiz('weekly');
+        });
+    }
+    
+    onAuthStateChanged(auth, async (user) => {
+        if(user) {
+            try {
+                await fetchDashboardStats(user);
+                hideShroud();
+            }
+
+            catch(e) {
+                console.error('Dashboard failed', e);
+                hideShroud();
+            }
         }
     
-        onAuthStateChanged(auth, async (user) => {
-            if(user) {
-                try {
-                    await fetchDashboardStats(user);
-                    hideShroud();
-                }
-
-                catch(e) {
-                    console.error('Dashboard failed', e);
-                    hideShroud();
-                }
-            }
-    
-            else {
-                showShroud();
-            }
-        });
+        else {
+            showShroud();
+        }
+    });
 });
 
 async function safeStreak(user, userData) {
@@ -195,6 +241,143 @@ function renderRecentChanges() {
         
         recentXpList.appendChild(change);
     })
+}
+
+function showStats(titleText, list) {
+    const popup = document.getElementById('dashboard_popup');
+    const popupTitle = document.getElementById('popup_title');
+    const popupContent = document.getElementById('popup_content');
+
+    popupTitle.textContent = titleText;
+
+    if(!list || list.length === 0) {
+        popupContent.innerHTML = '<p> No Stats Available </p>';
+    }
+
+    else {
+        popupContent.innerHTML = `<ul> ${list.map(item => `<li> ${item.file || item.url || item.reason} </li>`).join('')} </ul>`;
+    }
+
+    popup.hidden = false;
+}
+
+async function startQuiz(type) {
+    const quizID = doc(db, 'quiz', type);
+    const quizDetails = await getDoc(quizID);
+
+    if(!quizDetails.exists()) {
+        return;
+    }
+
+    const quizData = quizDetails.data();
+
+    if(!quizData) {
+        return;
+    }
+
+    const questionSelector = Math.floor(Math.random() * quizData.questions.length);
+    const selectedQuestion = quizData.questions[questionSelector];
+
+    showQuiz(type, selectedQuestion, quizData.reward);
+}
+
+async function showQuiz(type, question, reward) {
+    const popup = document.getElementById('dashboard_popup');
+    const popupTitle = document.getElementById('popup_title');
+    const popupContent = document.getElementById('popup_content');
+
+    if(type === 'daily') {
+        popupTitle.textContent = 'Daily Quiz';
+    }
+
+    if(type === 'weekly') {
+        popupTitle.textContent = 'Weekly Quiz';
+    }
+
+    popupContent.innerHTML = 
+    `
+        <p> 
+            ${question.question}
+        </p>
+        
+        <div id = 'answers'>
+            ${question.answers.map((answer, index) => `<button class = 'answer' data-index = '${index}'> ${answer} </button>`).join('')}}
+        </div>
+        
+        <p id = 'result'>
+         
+        </p>
+    `;
+
+    popup.hidden = false;
+
+    document.querySelectorAll('.answer').forEach((button) => {
+        button.addEventListener('click', async () => {
+            const selectedAnswer = Number(button.dataset.index);
+            const result = document.getElementById('result');
+
+            document.querySelectorAll('.answer').forEach((button) => {
+                button.disabled = true;
+            });
+
+            if(selectedAnswer === Number(question.correctAnswer)) {
+                result.textContent = `Correct! Reward: +${reward} XP`;
+                await giveXP(type, Number(reward));
+            }
+
+            else {
+                result.textContent = 'Incorrect';
+            }
+        });
+    });
+}
+
+async function giveXP(type, reward) {
+    const user = auth.currentUser;
+
+    if(!user) {
+        return;
+    }
+
+    const userID = doc(db, 'user', user.uid);
+    const userAccount = await getDoc(userID);
+    
+    if(!userAccount.exists()) {
+        return;
+    }
+
+    const userData = userAccount.data();
+    const stats = userData.dashboard;
+
+    const userXP = stats.xp;
+    const completedQuizzes = stats.completedQuizzes;
+    const recentChanges = stats.recentChanges ?? [];
+    
+    let quizReason = '';
+
+    if(type === 'daily') {
+        quizReason = 'Daily quiz completed';
+    }
+
+    if(type === 'weekly') {
+        quizReason = 'Weekly quiz completed';
+    }
+    
+    const newChanges = {
+        reason: quizReason,
+        amount: reward,
+        date: Timestamp.now()
+    };
+
+    const updateChanges = [...recentChanges, newChanges].slice(-5);
+
+    await updateDoc(userID, {
+        'dashboard.xp': userXP + reward,
+        'dashboard.completedQuizzes': completedQuizzes + 1,
+        'dashboard.recentChanges': updateChanges
+    });
+
+    await fetchDashboardStats(user);
 }
 
 async function dashboardSignIn() {

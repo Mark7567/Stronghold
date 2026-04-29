@@ -11,16 +11,32 @@ onAuthStateChanged(auth, (user) => {
     currentUser = user;
 });
 
-function updateStats(stats, action) {
+function updateStats(stats, action, data) {
     let reason = '';
     let xpChange = 0;
 
     if(action === 'siteBlocked') {
         stats.sitesBlocked += 1;
+
+        stats.blockedSites.push({
+            url: data.url,
+            score: data.score,
+            date: Timestamp.now()
+        });
+
+        stats.blockedSites = stats.blockedSites.slice(-5);
     }
 
     if(action === 'downloadBlocked') {
         stats.downloadsBlocked += 1;
+
+        stats.blockedDownloads.push({
+            file: data.file,
+            url: data.url,
+            date: Timestamp.now()
+        });
+
+        stats.blockedDownloads = stats.blockedDownloads.slice(-5);
     }
 
     if(action === 'ignoredWarning') {
@@ -29,8 +45,22 @@ function updateStats(stats, action) {
         xpChange = -15;
         reason = 'Ignored a warning';
         
-        ignoredPageWarning = true;
-        ignoredDownloadWarning = true;
+        if(data.file) {
+            ignoredDownloadWarning = true;
+        }
+
+        else {
+            ignoredPageWarning = true;
+        }
+
+        stats.reasonsIgnored.push({
+            reason: reason,
+            amount: xpChange,
+            url: data.url,
+            date: Timestamp.now()
+        });
+
+        stats.reasonsIgnored = stats.reasonsIgnored.slice(-5);
     }
 
     if(action === 'siteSafe') {
@@ -63,6 +93,8 @@ function updateStats(stats, action) {
         stats.recentChanges.push({
             reason: reason,
             amount: xpChange,
+            url: data.url || null,
+            file: data.file || null,
             date: Timestamp.now()
         });
 
@@ -72,7 +104,7 @@ function updateStats(stats, action) {
     return stats;
 }
 
-async function updateDashboard(action) {
+async function updateDashboard(action, data = {}) {
     const user = auth.currentUser;
 
     if(!user) {
@@ -97,16 +129,31 @@ async function updateDashboard(action) {
         xp: userData.dashboard?.xp,
         completedQuizzes: userData.dashboard?.completedQuizzes,
         streakDate: userData.dashboard?.streakDate,
-        recentChanges: userData.dashboard?.recentChanges
+        recentChanges: userData.dashboard?.recentChanges,
+        blockedSites: userData.dashboard?.blockedSites || [],
+        blockedDownloads: userData.dashboard?.blockedDownloads || [],
+        reasonsIgnored: userData.dashboard?.reasonsIgnored || []
     }
 
-    stats = updateStats(stats, action);
+    stats = updateStats(stats, action, data);
 
     await updateDoc(userID, {
-        dashboard: stats
+        'dashboard.downloadsBlocked': stats.downloadsBlocked,
+        'dashboard.safeDayStreak': stats.safeDayStreak,
+        'dashboard.sitesBlocked': stats.sitesBlocked,
+        'dashboard.warningsIgnored': stats.warningsIgnored,
+        'dashboard.warningsToday': stats.warningsToday,
+        'dashboard.xp': stats.xp,
+        'dashboard.completedQuizzes': stats.completedQuizzes,
+        'dashboard.streakDate': stats.streakDate,
+        'dashboard.recentChanges': stats.recentChanges,
+        'dashboard.blockedSites': stats.blockedSites,
+        'dashboard.blockedDownloads': stats.blockedDownloads,
+        'dashboard.reasonsIgnored': stats.reasonsIgnored
     });
 }
 
-window.stronghold.onSecurityEvent(async (action) => {
-    await updateDashboard(action)
+window.stronghold.onSecurityEvent(async (event) => {
+    const { action, data } = event;
+    await updateDashboard(action, data);
 });

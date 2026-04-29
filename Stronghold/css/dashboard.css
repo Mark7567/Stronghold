@@ -243,33 +243,6 @@ button:active {
     opacity: 0.85;
 }
 
-.chart_row {
-    margin-top: 14px;
-    font-family: 'Jockey One';
-}
-
-.chart_row span {
-    display: block;
-    margin-bottom: 6px;
-    color: #d1d5db;
-    font-size: 14px;
-}
-
-.chart_track {
-    height: 16px;
-    background: #030712;
-    border: 1px solid #374151;
-    border-radius: 999px;
-    overflow: hidden;
-}
-
-.chart_bar {
-    width: 0%;
-    height: 100%;
-    background: linear-gradient(90deg, #3b82f6, #22c55e);
-    transition: width 0.4s ease;
-}
-
 #dashboard_popup {
     position: fixed;
     inset: 0;
@@ -348,4 +321,36 @@ button:active {
 
 #sign_in_from_dashboard_button:hover {
     background: #3b82f6;
+}
+
+#answers {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.answer {
+    padding: 12px;
+    border: 1px solid #374151;
+    border-radius: 12px;
+    background: #111827;
+    color: white;
+    cursor: pointer;
+    font-family: 'Jockey One';
+}
+
+.answer:hover {
+    background: #374151;
+}
+
+.answer:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#result {
+    margin-top: 14px;
+    font-family: 'Jockey One';
+    font-weight: bold;
 }
