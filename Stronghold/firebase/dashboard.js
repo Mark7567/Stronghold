@@ -442,13 +442,10 @@ async function giveXP(type, reward) {
     const recentChanges = stats.recentChanges ?? [];
     
     let quizReason = '';
-    let currentDate = '';
-    let currentWeek = '';
 
     const updateData = {
         'dashboard.xp': userXP + reward,
-        'dashboard.completedQuizzes': completedQuizzes + 1,
-        'dashboard.recentChanges': updateChanges
+        'dashboard.completedQuizzes': completedQuizzes + 1
     }
 
     if(type === 'daily') {
@@ -468,7 +465,7 @@ async function giveXP(type, reward) {
     };
 
     const updateChanges = [...recentChanges, newChanges].slice(-5);
-    updateData['dashboard.completedQuizzes.recentChanges'] = updateChanges;
+    updateData['dashboard.recentChanges'] = updateChanges;
 
     await updateDoc(userID, updateData);
     await fetchDashboardStats(user);
