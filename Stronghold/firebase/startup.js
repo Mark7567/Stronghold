@@ -97,3 +97,26 @@ const guestLoginButton = document.getElementById('guest_login_button');
 if(guestLoginButton) {
     guestLoginButton.addEventListener('click', () => guestBrowsing());
 }
+
+const privacyPolicyPopup = document.getElementById('privacy_policy_popup');
+if(privacyPolicyPopup) {
+    privacyPolicyPopup.addEventListener('click', (event) => {
+        if(event.target === privacyPolicyPopup) {
+            privacyPolicyPopup.classList.add('hidden');
+        }
+    })
+}
+
+const privacyPolicyButton = document.getElementById('privacy_policy_button');
+if(privacyPolicyButton) {
+    privacyPolicyButton.addEventListener('click', () => {
+        privacyPolicyPopup.classList.remove('hidden');
+    });
+}
+
+const popupCloseButton = document.getElementById('popup_close_button');
+if(popupCloseButton) {
+    popupCloseButton.addEventListener('click', () => {
+        privacyPolicyPopup.classList.add('hidden');
+    });
+}
