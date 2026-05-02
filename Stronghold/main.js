@@ -964,7 +964,8 @@ ipcMain.handle('navigate:continue', async () => {
 
         try {
             securityEvents('ignoredWarning', {
-                url: downloadURL
+                url: downloadURL,
+                file: pendingDownload.file
             });
 
             bypassDownload = true;

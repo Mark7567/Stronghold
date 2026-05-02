@@ -12,9 +12,10 @@ export async function checkUser(user) {
             { 
                 accountCreated: serverTimestamp(),
                 dashboard: {
-                    blockedDownloads: {},
+                    blockedDownloads: [],
                     blockedSites: [],
                     completedQuizzes: 0,
+                    dailyQuizDate: '',
                     downloadsBlocked: 0,
                     reasonsIgnored: [],
                     recentChanges: [],
@@ -23,6 +24,7 @@ export async function checkUser(user) {
                     streakDate: '',
                     warningsIgnored: 0,
                     warningsToday: 0,
+                    weeklyQuizDate: '',
                     xp: 0
                 },
                 lastLogin: serverTimestamp(),

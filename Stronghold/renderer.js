@@ -64,7 +64,7 @@ if(leaveButton) {
 const homeSearchButton = document.getElementById('search_button');
 const homeSearchInput = document.getElementById('search_input');
 if(homeSearchButton && homeSearchInput) {
-    homeSearchButton.addEventListener('submit', async (event) => {
+    homeSearchButton.addEventListener('click', async (event) => {
         event.preventDefault();
 
         const input = homeSearchInput.value.trim();
@@ -73,7 +73,7 @@ if(homeSearchButton && homeSearchInput) {
             return;
         }
 
-        await window.stronghold.navigate(input);
+        await window.stronghold.goto(input);
     });
 }
 
