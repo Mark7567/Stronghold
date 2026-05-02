@@ -1,12 +1,8 @@
 import { db, auth } from './firebaseInitialiser.js';
-import { doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js';
-import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-auth.js';
+import { doc, getDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js';
+import { onAuthStateChanged, deleteUser } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-auth.js';
 import { googleSignIn } from './startup.js';
 
-/* Settings Stuff
-    To Do:
-        - Parental Control PIN (to be used when changing security-based settings)
-*/
 
 // Fecthes the user's setttings from firebase using their user ID
 async function fetchSettings(user) {
@@ -168,6 +164,51 @@ function settingsListeners() {
             }
         });
     });
+
+    const deleteAccountPopup = document.getElementById('delete_account_popup');
+    if(deleteAccountPopup) {
+        deleteAccountPopup.addEventListener('click', (event) => {
+            if(event.target === deleteAccountPopup) {
+                deleteAccountPopup.classList.add('hidden');
+            }
+        });
+    }
+
+    const deleteAccountButton = document.getElementById('delete_account_button');
+    if(deleteAccountButton) {
+        deleteAccountButton.addEventListener('click', () => {
+            deleteAccountPopup.classList.remove('hidden');
+        });
+    }
+
+    const noDelete = document.getElementById('no_delete');
+    if(noDelete) {
+        noDelete.addEventListener('click', () => {
+            deleteAccountPopup.classList.add('hidden');
+        });
+    }
+
+    const yesDelete = document.getElementById('yes_delete');
+    if(yesDelete) {
+        yesDelete.addEventListener('click', async () => {
+            const user = auth.currentUser;
+
+            if(!user) {
+                return;
+            }
+
+            try {
+                await deleteDoc(doc(db, 'user', user.uid));
+                await deleteUser(user);
+
+                window.location.href = '../html/startup.html';
+            }
+
+            catch(e) {
+                console.error('Error deleting', e);
+            }
+        })
+    }
 }
 
 // Listener for once all scripts have executed

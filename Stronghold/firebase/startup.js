@@ -12,23 +12,26 @@ export async function checkUser(user) {
             { 
                 accountCreated: serverTimestamp(),
                 dashboard: {
+                    blockedDownloads: {},
+                    blockedSites: [],
+                    completedQuizzes: 0,
                     downloadsBlocked: 0,
+                    reasonsIgnored: [],
+                    recentChanges: [],
                     safeDayStreak: 0,
                     sitesBlocked: 0,
+                    streakDate: '',
                     warningsIgnored: 0,
                     warningsToday: 0,
-                    xp: 0,
-                    completedQuizzes: 0,
-                    streakDate: '',
-                    recentChanges: []
+                    xp: 0
                 },
                 lastLogin: serverTimestamp(),
                 settings: {
                     downloadLevel: 'normal',
-                    protectionLevel: 'normal',
                     overrideDownloads: false,
-                    theme: 'light',
-                    startPage: 'home_page'
+                    protectionLevel: 'normal',
+                    startPage: 'home_page',
+                    theme: 'dark'
                 },
                 username: user.displayName
             }

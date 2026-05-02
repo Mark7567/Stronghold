@@ -112,6 +112,17 @@ html, body {
     display: none !important;
 }
 
+.primary,
+.secondary,
+#sign_in_from_settings_button {
+    height: 48px;
+    border-radius: 999px;
+    font-family: 'Jockey One';
+    font-size: 19px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
+}
+
 #sign_in_from_settings_button {
     padding: 0 28px;
     border: none;
@@ -121,4 +132,120 @@ html, body {
 
 #sign_in_from_settings_button:hover {
     background: #3b82f6;
+}
+
+#sign_in_from_settings_button:active {
+    transform: scale(0.96);
+}
+
+.hidden {
+    display: none !important;
+}
+
+#delete_account {
+    margin-top: 42px;
+    text-align: center;
+}
+
+#delete_account_button {
+    min-width: 280px;
+    height: 62px;
+    padding: 0 34px;
+    border: 1px solid #ef4444;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #7f1d1d, #dc2626);
+    color: white;
+    font-family: 'Jockey One';
+    font-size: 26px;
+    cursor: pointer;
+    box-shadow: 0 0 18px rgba(220, 38, 38, 0.32);
+    transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+#delete_account_button:hover {
+    background: linear-gradient(90deg, #991b1b, #ef4444);
+    box-shadow: 0 0 24px rgba(220, 38, 38, 0.45);
+}
+
+#delete_account_button:active {
+    transform: scale(0.96);
+}
+
+#delete_account_popup {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    box-sizing: border-box;
+    background: rgba(2, 6, 23, 0.82);
+    backdrop-filter: blur(8px);
+}
+
+#popup {
+    width: min(560px, 100%);
+    padding: 38px;
+    background: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 24px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+#popup_content p {
+    margin: 0 auto 28px auto;
+    max-width: 440px;
+    color: #fca5a5;
+    font-family: 'Jockey One';
+    font-size: 22px;
+    font-weight: bold;
+    line-height: 1.5;
+}
+
+#popup_content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#yes_delete,
+#no_delete {
+    min-width: 170px;
+    height: 54px;
+    padding: 0 24px;
+    margin: 0 8px;
+    border-radius: 999px;
+    font-family: 'Jockey One';
+    font-size: 22px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+#yes_delete {
+    border: 1px solid #ef4444;
+    background: linear-gradient(90deg, #991b1b, #dc2626);
+    color: white;
+    box-shadow: 0 0 16px rgba(220, 38, 38, 0.35);
+}
+
+#yes_delete:hover {
+    background: linear-gradient(90deg, #b91c1c, #ef4444);
+    box-shadow: 0 0 22px rgba(220, 38, 38, 0.5);
+}
+
+#no_delete {
+    border: 1px solid #374151;
+    background: #111827;
+    color: #e5e7eb;
+}
+
+#no_delete:hover {
+    background: #374151;
+}
+
+#yes_delete:active,
+#no_delete:active {
+    transform: scale(0.96);
 }

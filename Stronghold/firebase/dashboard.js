@@ -301,7 +301,7 @@ async function showQuiz(type, question, reward) {
         </p>
         
         <div id = 'answers'>
-            ${question.answers.map((answer, index) => `<button class = 'answer' data-index = '${index}'> ${answer} </button>`).join('')}}
+            ${question.answers.map((answer, index) => `<button class = 'answer' data-index = '${index}'> ${answer} </button>`).join('')}
         </div>
         
         <p id = 'result'>
