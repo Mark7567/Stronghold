@@ -47,7 +47,7 @@ Stronghold is a security-focussed web browser developed using the Electron Chrom
 
 ## Installation Instructions
 
- - Clone the repository (git clone https://github.com/Mark7567/COMP3000)
+ - Clone the repository (git clone https://github.com/Mark7567/Stronghold)
  - Install relevant dependencies (npm install talisman, npm install whois-json, npm install tldts)
  - Open terminal and host a local server on port 1000 (python3 -m http.server 1000)
  - Start the browser (npm start)
