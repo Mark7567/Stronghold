@@ -1,3 +1,8 @@
+/* 
+    Bridges ipc handlers to be used in other files when actions are performed
+*/
+
+
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('stronghold', {

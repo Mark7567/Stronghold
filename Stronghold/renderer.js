@@ -1,3 +1,9 @@
+/*
+    Renderers for a variety of buttons that are used for click events
+    Detect when a button is clicked and performs the relevant action from the 
+        preload file
+*/
+
 const backButton = document.getElementById('back_button');
 if(backButton) {
     backButton.addEventListener('click', () => {

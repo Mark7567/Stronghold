@@ -15,6 +15,7 @@ function updateStats(stats, action, data) {
     let reason = '';
     let xpChange = 0;
 
+    // Shows 5 most recent sites that were blocked
     if(action === 'siteBlocked') {
         stats.sitesBlocked += 1;
 
@@ -27,6 +28,7 @@ function updateStats(stats, action, data) {
         stats.blockedSites = stats.blockedSites.slice(-5);
     }
 
+    // Shows 5 most recent downloads that were blocked
     if(action === 'downloadBlocked') {
         stats.downloadsBlocked += 1;
 
@@ -39,6 +41,7 @@ function updateStats(stats, action, data) {
         stats.blockedDownloads = stats.blockedDownloads.slice(-5);
     }
 
+    // Shows 5 most recent warnings that were ignored
     if(action === 'ignoredWarning') {
         stats.warningsIgnored += 1;
         stats.warningsToday += 1;
@@ -63,6 +66,7 @@ function updateStats(stats, action, data) {
         stats.reasonsIgnored = stats.reasonsIgnored.slice(-5);
     }
 
+    // Shows the reasons for xp gain
     if(action === 'siteSafe') {
         if(ignoredPageWarning) {
             ignoredPageWarning = false;
@@ -137,6 +141,7 @@ async function updateDashboard(action, data = {}) {
 
     stats = updateStats(stats, action, data);
 
+    // Updates Firebase with new data based on changes
     await updateDoc(userID, {
         'dashboard.downloadsBlocked': stats.downloadsBlocked,
         'dashboard.safeDayStreak': stats.safeDayStreak,

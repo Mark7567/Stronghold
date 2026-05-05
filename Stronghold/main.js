@@ -42,6 +42,7 @@ function createTab() {
         }
     });
 
+    // Stores details about the tab to display in the taskbar
     const tabStorage = {
         view: newTab,
         title: 'Home Page',
@@ -56,6 +57,7 @@ function createTab() {
 
     newTab.overrideRiskScore = null;
 
+    // Normalises the URL if a user searches for it manually
     newTab.webContents.on('will-navigate', async (event, url, _iip, isMainFrame) => {
         if(!isMainFrame) {
             return;
@@ -63,10 +65,6 @@ function createTab() {
 
         const inputURL = normaliseURL(url);
         const outputURL = normaliseURL(newTab.overrideRiskScore);
-
-        console.log(inputURL);
-        console.log(outputURL);
-        console.log(inputURL === outputURL);
         
         if(outputURL && inputURL === outputURL) {
             newTab.overrideRiskScore = null;
@@ -77,6 +75,7 @@ function createTab() {
         await navigationOnceChecked(newTab, url);
     });
 
+    // Normalises the URL if it is redirected through a search query link
     newTab.webContents.on('will-redirect', async (event, url, _iip, isMainFrame) => {
         if(!isMainFrame) {
             return;
@@ -84,10 +83,6 @@ function createTab() {
         
         const inputURL = normaliseURL(url);
         const outputURL = normaliseURL(newTab.overrideRiskScore);
-
-        console.log(inputURL);
-        console.log(outputURL);
-        console.log(inputURL === outputURL);
         
         if(outputURL && inputURL === outputURL) {
             newTab.overrideRiskScore = null;
@@ -98,10 +93,12 @@ function createTab() {
         await navigationOnceChecked(newTab, url);
     })
 
+    // Displays the URL and changes location when clicked
     newTab.webContents.on('did-start-navigation', (_e, url, _iip, isMainFrame) => {
         if(isMainFrame) {
             let displayURL = '';
 
+            // Sets what appears in the URL bar if it is a Stronghold specific page that is shown 
             if(url.includes('home.html')) {
                 displayURL = '';
             }
@@ -159,6 +156,7 @@ function createTab() {
     updateTabInfo();
 }
 
+// Function to allow tabs to be switched without messing up content
 function switchTab(tracker) {
     if(tracker < 0 || tracker >= tabs.length) {
         return;
@@ -204,6 +202,7 @@ function switchTab(tracker) {
     updateTabInfo();
 }
 
+// Allows for tabs to be closed
 function closeTab(tabIndex) {
     if(tabIndex < 0 || tabIndex >= tabs.length) {
         return;
@@ -215,6 +214,7 @@ function closeTab(tabIndex) {
     tabs[tabIndex].view.webContents.destroy();
     tabs.splice(tabIndex, 1);
 
+    // Creates a new tab if the last tab is closed
     if(tabs.length === 0) {
         activeTabTracker = -1;
         createTab();
@@ -260,6 +260,7 @@ function updateTabInfo() {
     });
 }
 
+// Updates the name of the tab to display what the page content is
 function updateTabName(view) {
     const tabIndex = tabs.findIndex(tab => tab.view === view);
     
@@ -911,6 +912,7 @@ async function navigationOnceChecked(view, input) {
     return block;
 }
 
+// Basic navigation handlers
 ipcMain.handle('navigate:back', () => {
     const view = activeTab();
 
@@ -958,6 +960,7 @@ ipcMain.handle('navigate:continue', async () => {
     const view = activeTab();
     const tab = tabs[activeTabTracker];
 
+    // Saves the attempted download for if the user overrides from warning page
     if(pendingDownload) {
         const downloadURL = pendingDownload.url;
         const downloadFile = pendingDownload.file;
@@ -1022,6 +1025,7 @@ ipcMain.handle('navigate:continue', async () => {
     }
 });
 
+// Sends the user back to the previous page or home page if they leave via a warning page
 ipcMain.handle('navigate:leave', () => {
     const view = activeTab();
     pendingDownload = null;
@@ -1056,6 +1060,7 @@ ipcMain.handle('navigate:settings', async (_e) => {
     }
 })
 
+// Sets the user's protection level from their Firebase entry
 ipcMain.handle('settings:protection-level', (_e, protectionLevel) => {
     if(currentUser === null) {
         return {
@@ -1069,6 +1074,7 @@ ipcMain.handle('settings:protection-level', (_e, protectionLevel) => {
     };
 });
 
+// Sets the user's download level from their Firebase entry
 ipcMain.handle('settings:download-level', (_e, downloadLevel) => {
     if(currentUser === null) {
         return {
@@ -1081,7 +1087,7 @@ ipcMain.handle('settings:download-level', (_e, downloadLevel) => {
         okay: true
     };
 });
-
+// Sets the theme - Not used anymore
 ipcMain.handle('settings:set-theme', (_e, theme) => {
     if(currentUser === null) {
         return {
@@ -1110,6 +1116,7 @@ ipcMain.handle('settings:get-theme', () => {
     return userTheme;
 });
 
+// Allows for the start page to be changed between dashboard or home page
 ipcMain.handle('settings:start-page', (_e, startPage) => {
     if(currentUser === null) {
         return {
@@ -1123,6 +1130,7 @@ ipcMain.handle('settings:start-page', (_e, startPage) => {
     };
 });
 
+// Fetches the user's stats from Firebase
 ipcMain.handle('dashboard:get-stats', (event) => {
     const sender = event.sender;
     const tab = tabs.find(tab => tab.view.webContents === sender);
@@ -1189,6 +1197,7 @@ function downloadHandler() {
             return;
         }
 
+        // Stops a download from taking place if it is detected as malicious
         if(downloadCheck.action === 'block') {
             item.cancel();
             const tab = tabs[activeTabTracker];
@@ -1213,6 +1222,7 @@ function downloadHandler() {
             return;
         }
 
+        // Pauses a download if it is maybe malicious until the user intervenes
         if(downloadCheck.action === 'warn') {
             item.cancel();
 
@@ -1252,6 +1262,7 @@ function downloadHandler() {
     });
 }
 
+// Lets the download continue after a warning if the user agrees
 function allowDownload(item, file) {
     const saveLocation = app.getPath('downloads');
     const fullSaveLocation = path.join(saveLocation, file);
@@ -1272,6 +1283,7 @@ function allowDownload(item, file) {
     item.once('done', (_e, state) => { downloadsRecord.state = state; });
 }
 
+// Gets the user's protection level and sets the relevant risk scores
 function getProtectionLevel(protectionLevel) {
     if(protectionLevel === 'strict') {
         return {
@@ -1300,6 +1312,7 @@ function getProtectionLevel(protectionLevel) {
     };
 }
 
+// Gets the user's download level and sets the relevant extensions for warning and blocking
 function getDownloadLevel(downloadLevel) {
     if(downloadLevel === 'strict') {
         return {
@@ -1328,6 +1341,7 @@ function getDownloadLevel(downloadLevel) {
     };
 }
 
+// Sets the user's download and protection level to be strict
 function guestProtectionLevel() {
     if(currentUser === null) {
         return 'strict';
@@ -1344,6 +1358,7 @@ function guestDownloadLevel() {
     return userDownloadLevel;
 }
 
+// Makes sure the relevant start page is loaded
 function getStartPage(startPage) {    
     if(startPage === 'dashboard') {
         return 'http://localhost:1000/html/dashboard.html';

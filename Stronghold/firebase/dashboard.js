@@ -1,3 +1,4 @@
+// Relevant imports
 import { db, auth } from './firebaseInitialiser.js';
 import { doc, getDoc, updateDoc, Timestamp } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-firestore.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.4.0/firebase-auth.js';
@@ -12,14 +13,17 @@ let stats = {
     completedQuizzes: 0
 };
 
+// Calculates the user's level and lets it start from 1 instead of 0
 function calculateLevel(experience) {
     return Math.floor(experience / 100) + 1;
 }
 
+// Calculates the current date 
 function getDate() {
     return new Date().toISOString().split('T')[0];
 }
 
+// Calculates the current week
 function getWeek() {
     const currentDate = new Date();
     const firstDayOfYear = new Date(currentDate.getFullYear(), 0, 1);
@@ -47,6 +51,7 @@ async function fetchDashboardStats(user) {
     const updatedUserAccount = await getDoc(userID);
     const updatedUserData = updatedUserAccount.data();
 
+    // Loads the user's stats from Firebase
     stats = {
         downloadsBlocked: updatedUserData.dashboard?.downloadsBlocked,
         safeDayStreak: updatedUserData.dashboard?.safeDayStreak,
@@ -67,6 +72,7 @@ async function fetchDashboardStats(user) {
     statsRenderer(updatedUserData);
 }
 
+// Renderers to allow stats to be shown on buttons and lists
 function statsRenderer(userData) {
     const username = document.getElementById('username');
     const showDownloadsBlocked = document.getElementById('show_downloads_blocked');
@@ -118,6 +124,7 @@ function statsRenderer(userData) {
 document.addEventListener('DOMContentLoaded', async () => {
     showShroud();
 
+    // Click event listeners
     const signInFromDashboardButton = document.getElementById('sign_in_from_dashboard_button'); 
     if(signInFromDashboardButton) {
         signInFromDashboardButton.addEventListener('click', async () => {
@@ -187,6 +194,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 });
 
+// Detects the user's safe browsing streak using the current day
 async function safeStreak(user, userData) {
     const currentDate = new Date().toDateString();
     const streakDate = userData.dashboard?.streakDate;
@@ -218,6 +226,7 @@ async function safeStreak(user, userData) {
     stats.warningsToday = 0;
 }
 
+// Loads the recent XP changes into the relevant box 
 function renderRecentChanges() {
     const recentXpList = document.getElementById('recent_xp_changes');
 
@@ -236,6 +245,7 @@ function renderRecentChanges() {
         return;
     }
 
+    // Only shows most recent 5
     recentXpChanges.slice(-5).reverse().forEach((xpChange) => {
         const change = document.createElement('li');
         const amount = xpChange.amount;
@@ -259,6 +269,7 @@ function renderRecentChanges() {
     })
 }
 
+// Shows the stats on buttons
 function showStats(titleText, list) {
     const popup = document.getElementById('dashboard_popup');
     const popupTitle = document.getElementById('popup_title');
@@ -316,6 +327,7 @@ async function startQuiz(type) {
 
     let selectedQuestions = [];
 
+    // Randomiser for question selector from Firebase
     if(type === 'daily') {
         const questionSelector = Math.floor(Math.random() * quizData.questions.length);
         selectedQuestions = [quizData.questions[questionSelector]];
@@ -344,6 +356,7 @@ async function showQuiz(type, questions, reward) {
         popupTitle.textContent = 'Weekly Quiz';
     }
 
+    // Loads a question into a popup
     function showQuestion() {
         const question = questions[currentQuestion];
 
@@ -471,6 +484,7 @@ async function giveXP(type, reward) {
     await fetchDashboardStats(user);
 }
 
+// Locks the quiz button until the next day / week so the user cannot repeat it infinitely
 function updateQuizButton() {
     const currentDate = getDate();
     const currentWeek = getWeek();
@@ -502,6 +516,7 @@ function updateQuizButton() {
     }
 }
 
+// Allows sign in from the dashboard in the event of a guest user
 async function dashboardSignIn() {
     const user = await googleSignIn();
 

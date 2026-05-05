@@ -6,6 +6,7 @@ export async function checkUser(user) {
     const userID = doc(db, 'user', user.uid);
     const userAccount = await getDoc(userID);
 
+    // Creates a new Firebase document for a user if they don't have one with empty stats
     if(!userAccount.exists()) {
         await setDoc(
             userID, 
@@ -51,6 +52,7 @@ export async function checkUser(user) {
 
 const authProvider = new GoogleAuthProvider();
 
+// Allows for Google OAUTH sign in
 export async function googleSignIn() {
     try {
         await setPersistence(auth, browserLocalPersistence);
@@ -86,6 +88,7 @@ async function initialSignIn() {
     }
 }
 
+// Allows for guest browsing
 async function guestBrowsing() {
     sessionStorage.setItem('guest_browsing', 'true');
     await signOut(auth);
@@ -93,6 +96,7 @@ async function guestBrowsing() {
     await window.stronghold.login();
 }
 
+// Button renderers for startup page
 const googleLoginButton = document.getElementById('google_login_button');
 if(googleLoginButton) {
     googleLoginButton.addEventListener('click', () => initialSignIn());
