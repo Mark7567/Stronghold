@@ -960,12 +960,13 @@ ipcMain.handle('navigate:continue', async () => {
 
     if(pendingDownload) {
         const downloadURL = pendingDownload.url;
+        const downloadFile = pendingDownload.file;
         pendingDownload = null;
 
         try {
             securityEvents('ignoredWarning', {
                 url: downloadURL,
-                file: pendingDownload.file
+                file: downloadFile
             });
 
             bypassDownload = true;
